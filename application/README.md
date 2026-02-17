@@ -15,7 +15,7 @@ source venv/bin/activate
 
 install dependenciees
 ```
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 when adding a new dependency remember to update `requirements.txt` before commiting to git
