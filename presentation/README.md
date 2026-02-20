@@ -106,3 +106,6 @@ for full details of components see [ui.shadcn.com](https://ui.shadcn.com/docs/co
 # example adding component from blocks
 npx shadcn@latest add @blocks/login-03
 ```
+
+# SuperUser
+```
