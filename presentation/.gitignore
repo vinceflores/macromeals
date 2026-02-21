@@ -5,3 +5,17 @@
 # React Router
 /.react-router/
 /build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+db.sqlite3
+
+# Node / React
+node_modules/
+dist/
+build/
