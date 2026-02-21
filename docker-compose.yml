@@ -33,12 +33,14 @@ services:
   frontend:
     build:
       context: ./presentation
+      target: development-dependencies-env
     container_name: macromeals_frontend
     volumes:
       - ./presentation:/app
       - /app/node_modules
     ports:
       - "5173:5173"
+    command: npm run dev
     environment:
       - VITE_API_URL=http://localhost:8000
 
