@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: macromeals_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=macromeals
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+
+  #application layer
+  backend:
+    build:
+      context: ./application
+    container_name: macromeals_backend
+    volumes:
+      - ./application:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DEBUG=1
+      - DB_HOST=db
+      - DB_NAME=macromeals
+      - DB_USER=admin
+      - DB_PASS=password
+
+  # presentation layer (frontend)
+  frontend:
+    build:
+      context: ./presentation
+      target: development-dependencies-env
+    container_name: macromeals_frontend
+    volumes:
+      - ./presentation:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: npm run dev
+    environment:
+      - VITE_API_URL=http://localhost:8000
+
+volumes:
+  postgres_data:

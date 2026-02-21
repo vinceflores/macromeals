@@ -1,7 +1,9 @@
 FROM node:20-alpine AS development-dependencies-env
-COPY . /app
 WORKDIR /app
+COPY package.json package-lock.json ./
 RUN npm ci
+ENV PATH="/app/node_modules/.bin:$PATH"
+COPY . .
 
 FROM node:20-alpine AS production-dependencies-env
 COPY ./package.json package-lock.json /app/
