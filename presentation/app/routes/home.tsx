@@ -1,15 +1,15 @@
-import { Button } from "~/components/ui/button"
+import { Link } from "react-router"
 
 import type { Route } from "./+types/home"
 import Login05 from "components/login-05"
-import {getSession } from "~/sessions.server";
+import { getSession } from "~/sessions.server";
 import { redirect } from "react-router";
 import { Fetch } from "~/lib/auth.server";
 
-export function meta({ }: Route.MetaArgs) {
+export function meta(_: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "MacroMeals" },
+    { name: "description", content: "Register for MacroMeals and navigate to recipes." },
   ]
 }
 
@@ -36,10 +36,14 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function Home({ loaderData }: Route.ComponentProps) {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center">
-      {/* <Login05 /> */}
+    <main className="mx-auto max-w-6xl p-6">
+      <div className="mb-4 flex items-center justify-end">
+        <Link to="/recipes" className="rounded border px-4 py-2 text-sm font-medium">
+          Go to Recipes
+        </Link>
+      </div>
       <h1>email: {loaderData.email}</h1>
       <Button>Click me</Button>
-    </div>
+    </main>
   )
 }
