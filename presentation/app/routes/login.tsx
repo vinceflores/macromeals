@@ -1,0 +1,94 @@
+import LoginForm from "components/login-03";
+import { Button } from "~/components/ui/button";
+import type { Route } from "./+types/login";
+import { data, redirect } from "react-router";
+
+import {
+    getSession,
+    commitSession,
+} from "../sessions.server";
+
+
+export async function loader({
+    request,
+}: Route.LoaderArgs) {
+    const session = await getSession(
+        request.headers.get("Cookie"),
+    );
+
+    if (session.has("userId")) {
+        // Redirect to the home page if they are already signed in.
+        return redirect("/");
+    }
+
+    return data(
+        { error: session.get("error") },
+        {
+            headers: {
+                "Set-Cookie": await commitSession(session),
+            },
+        },
+    );
+}
+
+async function validateCredentials(username: string, password: string) {
+
+    // const res = await fetch("http://localhost:8000/api/token/", {
+    const res = await fetch(`${process.env.SERVER_URL}/api/token/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, password })
+    })
+    const auth = await res.json()
+    if (!auth) {
+        return null
+    }
+    return { userId: 1, ...auth }
+}
+
+export async function action({
+    request,
+}: Route.ActionArgs) {
+    const session = await getSession(
+        request.headers.get("Cookie"),
+    );
+    const form = await request.formData();
+    // const username = form.get("username");
+    // const password = form.get("password");
+    const username= "vince"
+    const password= "securepassword123"
+
+    const res = await validateCredentials(
+         username as string,
+        password as string,
+    );
+
+    if (res == null) {
+        session.flash("error", "Invalid username/password");
+        return redirect("auth/login", {
+            headers: {
+                "Set-Cookie": await commitSession(session),
+            },
+        });
+    }
+
+    // session.set("userId", res.userId);
+    session.set("access", res.access);
+    session.set("refresh", res.refresh);
+
+    return redirect("/", {
+        headers: {
+            "Set-Cookie": await commitSession(session),
+        },
+    });
+}
+
+export default function Login() {
+    return (
+        <div className="flex min-h-svh flex-col items-center justify-center">
+            <LoginForm action="/auth/login"/>
+        </div>
+    )
+}

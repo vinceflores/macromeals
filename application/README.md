@@ -33,4 +33,5 @@ python manage.py runserver
 - [django](https://docs.djangoproject.com/en/6.0/)
 - [django-restframework](https://www.django-rest-framework.org/tutorial/quickstart/)
 - [react + django article](https://www.digitalocean.com/community/tutorials/build-a-to-do-application-using-django-and-react#step-1-setting-up-the-backend)
-- [django + react tutorial sample code](https://github.com/do-community/django-todo-react)
+- [django + react tutorial sample code](https://github.com/techwithtim/Django-React-Full-Stack-App)
+- [django-todo-react](https://github.com/do-community/django-todo-react)
