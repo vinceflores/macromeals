@@ -17,7 +17,7 @@ services:
       context: ./application
     container_name: macromeals_backend
     volumes:
-      - ./application:/app
+      - .:/application/app
     ports:
       - "8000:8000"
     depends_on:
@@ -28,6 +28,7 @@ services:
       - DB_NAME=macromeals
       - DB_USER=admin
       - DB_PASS=password
+      - PYTHONBUFFERED=1
 
   # presentation layer (frontend)
   frontend:
