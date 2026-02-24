@@ -26,7 +26,8 @@ SECRET_KEY = "django-insecure-h(zkc+7_ob$@k8h0!74pcr(kcm)d_$jjsru%mmw93s3b_4mh24
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'backend']
+# ALLOWED_HOSTS=[]
 
 
 # Application definition
@@ -42,7 +43,8 @@ INSTALLED_APPS = [
     "app",
     "corsheaders",
     "recipes",
-    "accounts"
+    "accounts",
+    
 ]
 
 MIDDLEWARE = [
@@ -56,8 +58,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
 ]
 
 ROOT_URLCONF = "backend.urls"
@@ -79,9 +79,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    # "*"
+]
 CORS_ALLOW_ALL_ORIGINS = True
-# CORS_ALLOWED_ORIGINS=[] # for production
+# CORS_ALLOWED_ORIGINS=["*"] # for production
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -140,10 +144,7 @@ STATIC_URL = "static/"
 #     ],
 # }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
+
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
@@ -152,9 +153,12 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
+    # "DEFAULT_PERMISSION_CLASSES": [
+    #     "rest_framework.permissions.AllowAny",
+    # ],
+    # "DEFAULT_PERMISSION_CLASSES": (
+    #     "rest_framework.permissions.IsAuthenticated",
+    # ),
 }
 
 SIMPLE_JWT = {

@@ -5,7 +5,7 @@ export async function Fetch(request: Request, session: Session) {
   const accessToken = session.get("access");
   const refreshToken = session.get("refresh");
   
-  const server_url = process.env.SERVER_URL || "http://lccalhost:8000"
+  const server_url = process.env.SERVER_URL
   let response = await fetch(request, {
     headers: {
       ...Object.fromEntries(request.headers),

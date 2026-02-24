@@ -16,7 +16,7 @@ export async function loader({
         request.headers.get("Cookie"),
     );
 
-    if (session.has("userId")) {
+    if (session.has("access")) {
         // Redirect to the home page if they are already signed in.
         return redirect("/");
     }
@@ -31,21 +31,27 @@ export async function loader({
     );
 }
 
-async function validateCredentials(username: string, password: string) {
+async function validateCredentials(email: string, password: string) {
 
-    // const res = await fetch("http://localhost:8000/api/token/", {
-    const res = await fetch(`${process.env.SERVER_URL}/api/token/`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username, password })
-    })
-    const auth = await res.json()
-    if (!auth) {
+    try {
+
+        // const res = await fetch("http://localhost:8000/api/token/", {
+        const res = await fetch(`${process.env.SERVER_URL}/api/token/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, password })
+        })
+        if(res.status !== 200 ) {
+            return null
+        }
+        const auth = await res.json()
+        return { userId: 1, ...auth }
+    } catch (error) {
+        console.log({error})
         return null
-    }
-    return { userId: 1, ...auth }
+     }
 }
 
 export async function action({
@@ -55,19 +61,17 @@ export async function action({
         request.headers.get("Cookie"),
     );
     const form = await request.formData();
-    // const username = form.get("username");
-    // const password = form.get("password");
-    const username= "vince"
-    const password= "securepassword123"
+    const email = form.get("email");
+    const password = form.get("password");
 
     const res = await validateCredentials(
-         username as string,
+        email as string,
         password as string,
     );
-
+    
     if (res == null) {
-        session.flash("error", "Invalid username/password");
-        return redirect("auth/login", {
+        session.flash("error", "Invalid email/password");
+        return redirect("/auth/login", {
             headers: {
                 "Set-Cookie": await commitSession(session),
             },
@@ -88,7 +92,7 @@ export async function action({
 export default function Login() {
     return (
         <div className="flex min-h-svh flex-col items-center justify-center">
-            <LoginForm action="/auth/login"/>
+            <LoginForm action="/auth/login" />
         </div>
     )
 }

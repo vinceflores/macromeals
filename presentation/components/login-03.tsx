@@ -7,7 +7,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
 export type LoginParams = {
-  action: string
+  action?: string
 }
 
 export default function Login03(params: LoginParams) {
@@ -22,7 +22,9 @@ export default function Login03(params: LoginParams) {
           <p className="text-pretty text-center text-sm text-muted-foreground dark:text-muted-foreground">
             Enter your credentials to access your account.
           </p>
-          <Form action={params.action} method="post" className="mt-6 space-y-4">
+          <Form 
+          // action={params.action} 
+          method="post" className="mt-6 space-y-4">
             <div>
               <Label
                 htmlFor="email-login-03"
@@ -32,8 +34,8 @@ export default function Login03(params: LoginParams) {
               </Label>
               <Input
                 type="email"
-                id="email-login-03"
-                name="email-login-03"
+                id="email"
+                name="email"
                 autoComplete="email"
                 placeholder="ephraim@blocks.so"
                 className="mt-2"
@@ -48,15 +50,15 @@ export default function Login03(params: LoginParams) {
               </Label>
               <Input
                 type="password"
-                id="password-login-03"
-                name="password-login-03"
+                id="password"
+                name="password"
                 autoComplete="password"
                 placeholder="**************"
                 className="mt-2"
               />
             </div>
             <Button type="submit" className="mt-4 w-full py-2 font-medium">
-              Sign in
+              Log in
             </Button>
           </Form>
           <p className="text-pretty mt-6 text-sm text-muted-foreground dark:text-muted-foreground">

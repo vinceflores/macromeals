@@ -5,6 +5,7 @@ import Login05 from "components/login-05"
 import { getSession } from "~/sessions.server";
 import { redirect } from "react-router";
 import { Fetch } from "~/lib/auth.server";
+import { Button } from "~/components/ui/button";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -30,7 +31,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     }
   }
   // return { email: "no email" }
-  return redirect("auth/login")
+  return redirect("/auth/login")
 
 }
 
