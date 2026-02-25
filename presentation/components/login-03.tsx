@@ -1,10 +1,17 @@
 "use client";
 
+import { useState } from "react";
+import { Form } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
-export default function Login03() {
+export type LoginParams = {
+  action?: string
+}
+
+export default function Login03(params: LoginParams) {
+
   return (
     <div className="flex items-center justify-center min-h-dvh">
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
@@ -15,7 +22,9 @@ export default function Login03() {
           <p className="text-pretty text-center text-sm text-muted-foreground dark:text-muted-foreground">
             Enter your credentials to access your account.
           </p>
-          <form action="#" method="post" className="mt-6 space-y-4">
+          <Form 
+          // action={params.action} 
+          method="post" className="mt-6 space-y-4">
             <div>
               <Label
                 htmlFor="email-login-03"
@@ -25,8 +34,8 @@ export default function Login03() {
               </Label>
               <Input
                 type="email"
-                id="email-login-03"
-                name="email-login-03"
+                id="email"
+                name="email"
                 autoComplete="email"
                 placeholder="ephraim@blocks.so"
                 className="mt-2"
@@ -41,17 +50,17 @@ export default function Login03() {
               </Label>
               <Input
                 type="password"
-                id="password-login-03"
-                name="password-login-03"
+                id="password"
+                name="password"
                 autoComplete="password"
                 placeholder="**************"
                 className="mt-2"
               />
             </div>
             <Button type="submit" className="mt-4 w-full py-2 font-medium">
-              Sign in
+              Log in
             </Button>
-          </form>
+          </Form>
           <p className="text-pretty mt-6 text-sm text-muted-foreground dark:text-muted-foreground">
             Forgot your password?{" "}
             <a

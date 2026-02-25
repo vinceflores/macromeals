@@ -21,6 +21,7 @@ A modern, production-ready template for building full-stack React applications u
 Install the dependencies:
 
 ```bash
+cp .env-example .env
 npm install
 ```
 
