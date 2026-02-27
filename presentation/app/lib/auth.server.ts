@@ -18,7 +18,7 @@ export async function Fetch(request: Request, session: Session) {
   }
   
   const refreshResponse = await fetch(
-    `${server_url}/api/token/refresh/`,
+    `${server_url}/api/auth/token/refresh/`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -28,7 +28,7 @@ export async function Fetch(request: Request, session: Session) {
 
 
   if (!refreshResponse.ok) {
-    throw redirect("auth/login", {
+    throw redirect("/auth/login", {
       headers: {
         "Set-Cookie": await destroySession(session),
       },
