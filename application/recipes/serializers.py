@@ -5,6 +5,10 @@ class IngredientInputSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     quantity = serializers.FloatField()
     unit = serializers.CharField(max_length=50, required=False, default="g")
+    calories_per_100g = serializers.FloatField(required=False, default=0, min_value=0)
+    protein_per_100g = serializers.FloatField(required=False, default=0, min_value=0)
+    carbs_per_100g = serializers.FloatField(required=False, default=0, min_value=0)
+    fat_per_100g = serializers.FloatField(required=False, default=0, min_value=0)
 
 class RecipeCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
@@ -17,7 +21,15 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeIngredient
-        fields = ["ingredient_name", "quantity", "unit"]
+        fields = [
+            "ingredient_name",
+            "quantity",
+            "unit",
+            "calories_per_100g",
+            "protein_per_100g",
+            "carbs_per_100g",
+            "fat_per_100g",
+        ]
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(source="recipe_ingredients", many=True, read_only=True)

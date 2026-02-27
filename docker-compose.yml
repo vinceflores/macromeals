@@ -36,7 +36,7 @@ services:
       - DB_USER=admin
       - DB_PASS=password
       - PYTHONBUFFERED=1
-      - USDA_API_KEY= api_key # change this 
+      - USDA_API_KEY=BxbBVhNcj7vfANeu0I7rmRuu9ogXnF6dwQO87XhJ # change this 
 
   # presentation layer (frontend)
   frontend:
