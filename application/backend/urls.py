@@ -14,7 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
+from app.usda_views import UsdaSearchView, UsdaFoodDetailView
 from django.urls import path, include
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -25,6 +25,8 @@ from django.contrib import admin
 from recipes.views import RecipeListCreateView, RecipeDetailView
 
 urlpatterns = [
+    path("api/usda/search/", UsdaSearchView.as_view()),
+    path("api/usda/food/<int:fdc_id>/", UsdaFoodDetailView.as_view()),
     path("recipe/", RecipeListCreateView.as_view()),
     path("recipe/<int:recipe_id>/", RecipeDetailView.as_view()),
     path("admin/", admin.site.urls),

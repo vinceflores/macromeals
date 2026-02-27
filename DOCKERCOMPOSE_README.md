@@ -19,3 +19,13 @@ after this do
 python manage.py makemigrations
 python manage.py migrate
 ```
+
+
+## USDA API Key Setup (Required)
+
+This project uses the USDA FoodData Central API.
+
+1. Open `docker-compose.yml`
+2. In the `backend` service, set the environment variable:
+
+   USDA_API_KEY=YOUR_KEY_HERE

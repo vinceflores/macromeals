@@ -7,4 +7,5 @@ db.sqlite3
 
 node_modules/
 dist/
-build/
+build/__pycache__/
+*.pyc
