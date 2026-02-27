@@ -14,4 +14,8 @@ if you delete the volumes
 ```
 docker compose down -v
 ```
-after this do >NOTE_1
+after this do
+```
+python manage.py makemigrations
+python manage.py migrate
+```
