@@ -1,4 +1,4 @@
-#1/bin/sh
+#!/bin/sh
 
 echo "waiting for database"
 while ! nc -z $DB_HOST $DB_PORT; do
