@@ -16,3 +16,7 @@ class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
     quantity = models.FloatField()
     unit = models.CharField(max_length=50, default="g")
+    calories_per_100g = models.FloatField(default=0)
+    protein_per_100g = models.FloatField(default=0)
+    carbs_per_100g = models.FloatField(default=0)
+    fat_per_100g = models.FloatField(default=0)

@@ -43,6 +43,23 @@ export type IngredientInput = {
   name: string
   quantity: number
   unit?: string
+  calories_per_100g?: number
+  protein_per_100g?: number
+  carbs_per_100g?: number
+  fat_per_100g?: number
+}
+
+export type FoodSearchResult = {
+  fdcId: number
+  description: string
+  brandOwner?: string | null
+  dataType?: string | null
+  macros: {
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+  }
 }
 
 export type CreateRecipePayload = {
@@ -55,6 +72,10 @@ export type CreateRecipePayload = {
 type ApiError = {
   detail?: string
   errors?: Record<string, unknown>
+}
+
+type FoodSearchResponse = {
+  results: FoodSearchResult[]
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -90,4 +111,9 @@ export function createRecipe(payload: CreateRecipePayload) {
     method: "POST",
     body: JSON.stringify(payload),
   })
+}
+
+export function searchFood(query: string) {
+  const q = encodeURIComponent(query.trim())
+  return request<FoodSearchResponse>(`/food/search/?q=${q}`)
 }
