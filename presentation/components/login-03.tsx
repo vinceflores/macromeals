@@ -7,8 +7,8 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
 export type LoginParams = {
-  action?: string
-}
+  action?: string;
+};
 
 export default function Login(params: LoginParams) {
   return (
@@ -21,9 +21,11 @@ export default function Login(params: LoginParams) {
           <p className="text-pretty text-center text-sm text-muted-foreground dark:text-muted-foreground">
             Enter your credentials to access your account.
           </p>
-          <Form 
-          // action={params.action} 
-          method="post" className="mt-6 space-y-4">
+          <Form
+            // action={params.action}
+            method="post"
+            className="mt-6 space-y-4"
+          >
             <div>
               <Label
                 htmlFor="email-login-03"
@@ -69,10 +71,17 @@ export default function Login(params: LoginParams) {
               Reset password
             </a>
           </p>
+          <p className="text-pretty mt-6 text-sm text-muted-foreground dark:text-muted-foreground">
+            Don't have an account?{" "}
+            <a
+              href="/auth/register"
+              className="font-medium text-primary hover:text-primary/90 dark:text-primary dark:hover:text-primary/90"
+            >
+              Register Now
+            </a>
+          </p>
         </div>
       </div>
     </div>
   );
 }
-
-

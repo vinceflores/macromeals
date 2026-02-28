@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.response import Response
 from .serializers import RegisterSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 #test
 #handle the HTTP request (POST) (restful apis)
@@ -14,8 +15,15 @@ class RegisterView(generics.CreateAPIView):
 
         #validate the data
         if (serializer.is_valid()):
-            serializer.save()
-            return Response({"message": "User created succesfully!"}, status = status.HTTP_201_CREATED)
-        
+
+            user = serializer.save()
+
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                "message": "User created successfully!",
+                "access": str(refresh.access_token), 
+                "refresh": str(refresh),             
+            }, status=status.HTTP_201_CREATED)
         #if invalid
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
