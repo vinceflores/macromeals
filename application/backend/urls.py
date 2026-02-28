@@ -22,18 +22,19 @@ from rest_framework_simplejwt.views import (
 )
 # from . import views
 from django.contrib import admin
-from recipes.views import RecipeListCreateView, RecipeDetailView
+from recipes.views import RecipeListCreateView, RecipeDetailView, FoodSearchView
 
 urlpatterns = [
     path("api/usda/search/", UsdaSearchView.as_view()),
     path("api/usda/food/<int:fdc_id>/", UsdaFoodDetailView.as_view()),
     path("recipe/", RecipeListCreateView.as_view()),
     path("recipe/<int:recipe_id>/", RecipeDetailView.as_view()),
+    path("food/search/", FoodSearchView.as_view()),
     path("admin/", admin.site.urls),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
     path("api/", include("app.urls")),
+    path("api/auth/", include("auths.urls")),
     path("api/accounts/", include("accounts.urls"))
     #test
 ]

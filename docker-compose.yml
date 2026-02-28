@@ -39,7 +39,6 @@ services:
       - DB_PASS=password
       - PYTHONUNBUFFERED=1
       - USDA_API_KEY= api_key #change this
-
   # presentation layer (frontend)
   frontend:
     build:

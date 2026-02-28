@@ -10,8 +10,7 @@ export type LoginParams = {
   action?: string
 }
 
-export default function Login03(params: LoginParams) {
-
+export default function Login(params: LoginParams) {
   return (
     <div className="flex items-center justify-center min-h-dvh">
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
@@ -64,7 +63,7 @@ export default function Login03(params: LoginParams) {
           <p className="text-pretty mt-6 text-sm text-muted-foreground dark:text-muted-foreground">
             Forgot your password?{" "}
             <a
-              href="#"
+              href="/auth/reset-password"
               className="font-medium text-primary hover:text-primary/90 dark:text-primary dark:hover:text-primary/90"
             >
               Reset password
@@ -75,3 +74,5 @@ export default function Login03(params: LoginParams) {
     </div>
   );
 }
+
+
