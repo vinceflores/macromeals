@@ -16,6 +16,8 @@ export async function loader({
         request.headers.get("Cookie"),
     );
 
+    const error = session.get("error");
+
     if (session.has("access")) {
         // Redirect to the home page if they are already signed in.
         return redirect("/");

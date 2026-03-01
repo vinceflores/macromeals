@@ -12,32 +12,33 @@ services:
       # - "5432:5432"
       - "5434:5432"
     healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U admin -d macromeals"]
-        interval: 5s
-        timeout: 5s
-        retries: 5
+      test: ["CMD-SHELL", "pg_isready -U admin -d macromeals"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   #application layer
   backend:
     build:
       context: ./application
     container_name: macromeals_backend
+    entrypoint: /app/entrypoint.sh
+    command: python application/manage.py runserver 0.0.0.0:8000
     volumes:
-      - .:/application/app
+      - .:/app
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
       - DEBUG=1
       - DB_HOST=db
+      - DB_PORT=5432
       - DB_NAME=macromeals
       - DB_USER=admin
       - DB_PASS=password
-      - PYTHONBUFFERED=1
-      - USDA_API_KEY=BxbBVhNcj7vfANeu0I7rmRuu9ogXnF6dwQO87XhJ # change this 
-
+      - PYTHONUNBUFFERED=1
+      - USDA_API_KEY= api_key #change this
   # presentation layer (frontend)
   frontend:
     build:

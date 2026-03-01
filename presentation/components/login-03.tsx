@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Form } from "react-router";
+import { Form, Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
 export type LoginParams = {
-  action?: string
-}
+  action?: string;
+};
 
 export default function Login(params: LoginParams) {
   return (
@@ -21,9 +21,11 @@ export default function Login(params: LoginParams) {
           <p className="text-pretty text-center text-sm text-muted-foreground dark:text-muted-foreground">
             Enter your credentials to access your account.
           </p>
-          <Form 
-          // action={params.action} 
-          method="post" className="mt-6 space-y-4">
+          <Form
+            // action={params.action}
+            method="post"
+            className="mt-6 space-y-4"
+          >
             <div>
               <Label
                 htmlFor="email-login-03"
@@ -60,19 +62,29 @@ export default function Login(params: LoginParams) {
               Log in
             </Button>
           </Form>
-          <p className="text-pretty mt-6 text-sm text-muted-foreground dark:text-muted-foreground">
-            Forgot your password?{" "}
-            <a
-              href="/auth/reset-password"
-              className="font-medium text-primary hover:text-primary/90 dark:text-primary dark:hover:text-primary/90"
-            >
-              Reset password
-            </a>
-          </p>
+          <div className="mt-6 flex flex-col items-center gap-2 text-center">
+            <p className="text-sm text-muted-foreground">
+              Forgot your password?{" "}
+              <Link
+                to="/auth/reset-password"
+                className="font-medium text-primary hover:underline underline-offset-4"
+              >
+                Reset password
+              </Link>
+            </p>
+
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link
+                to="/auth/register"
+                className="font-medium text-primary hover:underline underline-offset-4"
+              >
+                Register Now
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-
