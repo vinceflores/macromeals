@@ -5,14 +5,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=macromeals
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       # - "5432:5432"
       - "5434:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d macromeals"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -33,12 +33,12 @@ services:
     environment:
       - DEBUG=1
       - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=macromeals
-      - DB_USER=admin
-      - DB_PASS=password
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASS=${POSTGRES_PASSWORD}
       - PYTHONUNBUFFERED=1
-      - USDA_API_KEY= api_key #change this
+      - USDA_API_KEY=${USDA_API_KEY}
   # presentation layer (frontend)
   frontend:
     build:
@@ -52,11 +52,9 @@ services:
       - "5173:5173"
     command: npm run dev
     environment:
-      # - VITE_API_URL=http://localhost:8000
-      # - SERVER_URL=http://0.0.0.0:8000
-      - SERVER_URL=http://backend:8000
-      - APP_SECRET="s3cret1"
-      - NODE_ENV=dev
+      - SERVER_URL=${SERVER_URL}
+      - APP_SECRET=${APP_SECRET}
+      - NODE_ENV=${NODE_ENV}
 
 volumes:
   postgres_data:
