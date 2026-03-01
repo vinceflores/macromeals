@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Form } from "react-router";
+import { Form, Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -62,24 +62,27 @@ export default function Login(params: LoginParams) {
               Log in
             </Button>
           </Form>
-          <p className="text-pretty mt-6 text-sm text-muted-foreground dark:text-muted-foreground">
-            Forgot your password?{" "}
-            <a
-              href="/auth/reset-password"
-              className="font-medium text-primary hover:text-primary/90 dark:text-primary dark:hover:text-primary/90"
-            >
-              Reset password
-            </a>
-          </p>
-          <p className="text-pretty mt-6 text-sm text-muted-foreground dark:text-muted-foreground">
-            Don't have an account?{" "}
-            <a
-              href="/auth/register"
-              className="font-medium text-primary hover:text-primary/90 dark:text-primary dark:hover:text-primary/90"
-            >
-              Register Now
-            </a>
-          </p>
+          <div className="mt-6 flex flex-col items-center gap-2 text-center">
+            <p className="text-sm text-muted-foreground">
+              Forgot your password?{" "}
+              <Link
+                to="/auth/reset-password"
+                className="font-medium text-primary hover:underline underline-offset-4"
+              >
+                Reset password
+              </Link>
+            </p>
+
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link
+                to="/auth/register"
+                className="font-medium text-primary hover:underline underline-offset-4"
+              >
+                Register Now
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

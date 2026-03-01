@@ -35,8 +35,8 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
-    dailyCalorieGoal = models.PositiveIntegerField(default = 2000, null=True, blank=True)
-    proteinGoal = models.PositiveIntegerField(
+    daily_calorie_goal = models.PositiveIntegerField(default = 2000, null=True, blank=True)
+    protein_goal = models.PositiveIntegerField(
         default = 30,
         validators = [
             MinValueValidator(0),
@@ -45,7 +45,7 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True
     )
-    carbsGoal = models.PositiveIntegerField(
+    carbs_goal = models.PositiveIntegerField(
         default = 45,
         validators = [
             MinValueValidator(0),
@@ -54,7 +54,7 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True
     )
-    fatGoal = models.PositiveIntegerField(
+    fat_goal = models.PositiveIntegerField(
         default = 25,
         validators = [
             MinValueValidator(0),
@@ -63,7 +63,7 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True
     )
-    waterGoal = models.DecimalField(
+    water_goal = models.DecimalField(
         default = 2.5,
         max_digits=3,
         decimal_places=1,
@@ -71,17 +71,12 @@ class CustomUser(AbstractUser):
         blank=True
     )
 
-
-    
-
-
-
     #ensuring that macro goals add up to 100%
     def clean(self):
         super().clean()
 
-        if self.proteinGoal is not None and self.carbsGoal is not None and self.fatGoal is not None:
-            totalMacros = self.proteinGoal + self.carbsGoal + self.fatGoal
+        if self.protein_goal is not None and self.carbs_goal is not None and self.fat_goal is not None:
+            total_macros = self.protein_goal + self.carbs_goal + self.fat_goal
 
-            if (totalMacros != 100):
-                raise ValidationError(f"Total macro percentages must equal 100%. Current total: {totalMacros}%")
+            if (total_macros != 100):
+                raise ValidationError(f"Total macro percentages must equal 100%. Current total: {total_macros}%")

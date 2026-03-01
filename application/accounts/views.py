@@ -3,6 +3,10 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from .serializers import RegisterSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from .serializers import UserSerializer
+from rest_framework.generics import RetrieveUpdateAPIView
 
 #test
 #handle the HTTP request (POST) (restful apis)
@@ -27,3 +31,12 @@ class RegisterView(generics.CreateAPIView):
             }, status=status.HTTP_201_CREATED)
         #if invalid
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileView(RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        
+        return self.request.user

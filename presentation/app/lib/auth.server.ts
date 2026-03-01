@@ -4,8 +4,9 @@ import { destroySession } from "~/sessions.server";
 export async function Fetch(request: Request, session: Session) {
   const accessToken = session.get("access");
   const refreshToken = session.get("refresh");
-  
-  const server_url = process.env.SERVER_URL
+  const initialRequest = request.clone();
+
+  const server_url = process.env.SERVER_URL;
   let response = await fetch(request, {
     headers: {
       ...Object.fromEntries(request.headers),
@@ -16,16 +17,12 @@ export async function Fetch(request: Request, session: Session) {
   if (response.status !== 401) {
     return response;
   }
-  
-  const refreshResponse = await fetch(
-    `${server_url}/api/auth/token/refresh/`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh: refreshToken }),
-    }
-  );
 
+  const refreshResponse = await fetch(`${server_url}/api/auth/token/refresh/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh: refreshToken }),
+  });
 
   if (!refreshResponse.ok) {
     throw redirect("/auth/login", {
@@ -38,9 +35,9 @@ export async function Fetch(request: Request, session: Session) {
   const data = await refreshResponse.json();
   const newAccessToken = data.access;
 
-  return fetch(request, {
+  return fetch(initialRequest, {
     headers: {
-      ...Object.fromEntries(request.headers),
+      ...Object.fromEntries(initialRequest.headers),
       Authorization: `Bearer ${newAccessToken}`,
     },
   });
