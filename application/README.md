@@ -1,48 +1,29 @@
 
+# Application Layer / Backend Server
 
-# MacroMeals Application layer
+## Modules
+| name | description | type |
+| ---- | ----------- | ----- |
+| backend | django project configuration folder | project |
+| accounts | CRUD for account | app |
+| recipes | CRUD for recipes and integration for external recipe APIs| app |
+| auths | JWT auth and reset password | app |
 
-# Set up
-Create a python virtual environment
+A typical folder structure per type
 
-```
-python -m venv venv
-source venv/bin/activate
-```
+Type `app` django term for module
+- `models.py`: Data Model/ORM model definitions 
+- `serializer.py`: DTO, DAO, Validators
+- `views.py`: Controller definitions
+- `urls.py`: lists of HTTP endpoints
+- `app.py`: module config
 
-install dependenciees
-```
-pip install -r requirements.txt
-```
+Type `project`
+- `settings.py`: Project Configurations
+- `urls.py`: list of HTTP endpoints for the backend server
 
-when adding a new dependency remember to update `requirements.txt` before commiting to git
-```
-pip freeze > requirements.txt
-```
+## Enpoints
 
-# Running the server
-posgesql is not configured yet so default is sqlite
-```
-python manage.py migrate
-```
-```
-python manage.py runserver
-```
-
-# Create superuser
-Create a superuser to create recipes under
-```
-python manage.py createsuperuser
-```
-Example:
-```
-Username:
-Email Address: test@gmail.com
-Password: test123123
-```
-# Resources 
-- [django](https://docs.djangoproject.com/en/6.0/)
-- [django-restframework](https://www.django-rest-framework.org/tutorial/quickstart/)
-- [react + django article](https://www.digitalocean.com/community/tutorials/build-a-to-do-application-using-django-and-react#step-1-setting-up-the-backend)
-- [django + react tutorial sample code](https://github.com/techwithtim/Django-React-Full-Stack-App)
-- [django-todo-react](https://github.com/do-community/django-todo-react)
+### `/accounts`
+### `/auths`
+### `/recipes`
