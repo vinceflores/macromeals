@@ -4,6 +4,8 @@ __pycache__/
 
 .env
 db.sqlite3
+.env.local
+.env.*.local
 
 node_modules/
 dist/

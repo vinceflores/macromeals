@@ -5,39 +5,40 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=macromeals
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       # - "5432:5432"
       - "5434:5432"
     healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U admin -d macromeals"]
-        interval: 5s
-        timeout: 5s
-        retries: 5
+      test: ["CMD-SHELL", "pg_isready -U admin -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   #application layer
   backend:
     build:
       context: ./application
     container_name: macromeals_backend
+    entrypoint: /app/entrypoint.sh
+    command: python application/manage.py runserver 0.0.0.0:8000
     volumes:
-      - .:/application/app
+      - .:/app
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
       - DEBUG=1
       - DB_HOST=db
-      - DB_NAME=macromeals
-      - DB_USER=admin
-      - DB_PASS=password
-      - PYTHONBUFFERED=1
-      - USDA_API_KEY=BxbBVhNcj7vfANeu0I7rmRuu9ogXnF6dwQO87XhJ # change this 
-
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASS=${POSTGRES_PASSWORD}
+      - PYTHONUNBUFFERED=1
+      - USDA_API_KEY=${USDA_API_KEY}
   # presentation layer (frontend)
   frontend:
     build:
@@ -51,11 +52,9 @@ services:
       - "5173:5173"
     command: npm run dev
     environment:
-      # - VITE_API_URL=http://localhost:8000
-      # - SERVER_URL=http://0.0.0.0:8000
-      - SERVER_URL=http://backend:8000
-      - APP_SECRET="s3cret1"
-      - NODE_ENV=dev
+      - SERVER_URL=${SERVER_URL}
+      - APP_SECRET=${APP_SECRET}
+      - NODE_ENV=${NODE_ENV}
 
 volumes:
   postgres_data:
