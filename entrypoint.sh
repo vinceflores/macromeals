@@ -8,6 +8,7 @@ done
 echo "database started!"
 
 #run migrations
+python application/manage.py makemigrations --noinput
 python application/manage.py migrate --noinput
 
 exec "$@"
