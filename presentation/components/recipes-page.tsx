@@ -1,4 +1,5 @@
 import { Form, Link } from "react-router";
+import { useState } from "react";
 
 import type { FoodSearchResult, RecipeListItem } from "~/lib/recipes-api";
 
@@ -53,6 +54,8 @@ export default function RecipesPage({
   onRemoveIngredientRow,
   onAddIngredientRow,
 }: RecipesPageProps) {
+  const [activeTab, setActiveTab] = useState<"create" | "saved">("create");
+
   return (
     <main className="mx-auto max-w-5xl p-6">
       <h1 className="text-3xl font-semibold">Recipes</h1>
@@ -60,9 +63,32 @@ export default function RecipesPage({
         This page reads from and writes to your Django recipe endpoints.
       </p>
 
-      <section className="mt-8 rounded border p-4">
-        <h2 className="text-xl font-medium">Create Recipe</h2>
-        <Form method="post" className="mt-4 space-y-3">
+      {/* Keep create flow and saved list in separate tabs for cleaner UX. */}
+      <div className="mt-6 flex gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab("create")}
+          className={`rounded border px-3 py-2 text-sm ${
+            activeTab === "create" ? "bg-zinc-900 text-white" : ""
+          }`}
+        >
+          Create Recipe
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("saved")}
+          className={`rounded border px-3 py-2 text-sm ${
+            activeTab === "saved" ? "bg-zinc-900 text-white" : ""
+          }`}
+        >
+          Saved Recipes
+        </button>
+      </div>
+
+      {activeTab === "create" ? (
+        <section className="mt-4 rounded border p-4">
+          <h2 className="text-xl font-medium">Create Recipe</h2>
+          <Form method="post" className="mt-4 space-y-3">
           <div>
             <label htmlFor="name" className="block text-sm font-medium">
               Name
@@ -129,6 +155,10 @@ export default function RecipesPage({
                               className="w-full rounded px-2 py-1 text-left hover:bg-zinc-100"
                             >
                               <p className="text-sm">{food.description}</p>
+                              {/* USDA branded foods include brandOwner; show it when present. */}
+                              {food.brandOwner ? (
+                                <p className="text-xs text-zinc-500">Brand: {food.brandOwner}</p>
+                              ) : null}
                               <p className="text-xs text-zinc-600">
                                 {food.macros.calories} kcal | P {food.macros.protein}g | C{" "}
                                 {food.macros.carbs}g | F {food.macros.fat}g
@@ -182,44 +212,45 @@ export default function RecipesPage({
               Add Ingredient
             </button>
           </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="rounded bg-black px-4 py-2 text-white disabled:opacity-60"
-          >
-            {isSubmitting ? "Creating..." : "Create Recipe"}
-          </button>
-        </Form>
-        {actionData?.error && <p className="mt-3 text-sm text-red-700">{actionData.error}</p>}
-        {actionData?.success && (
-          <p className="mt-3 text-sm text-green-700">{actionData.success}</p>
-        )}
-      </section>
-
-      <section className="mt-8">
-        <h2 className="text-xl font-medium">Recipe List</h2>
-        {loadError && <p className="mt-3 text-sm text-red-700">{loadError}</p>}
-        {!recipes.length ? (
-          <p className="mt-3 text-sm text-zinc-600">No recipes yet.</p>
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {recipes.map((recipe) => (
-              <li key={recipe.id} className="rounded border p-4">
-                <h3 className="font-semibold">{recipe.name}</h3>
-                <p className="text-sm text-zinc-600">Servings: {recipe.servings}</p>
-                <p className="mt-1 text-sm">
-                  Total macros: {recipe.macros.total.calories} kcal | P{" "}
-                  {recipe.macros.total.protein}g | C {recipe.macros.total.carbs}g | F{" "}
-                  {recipe.macros.total.fat}g
-                </p>
-                <Link to={`/recipes/${recipe.id}`} className="mt-2 inline-block text-sm underline">
-                  View Details
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded bg-black px-4 py-2 text-white disabled:opacity-60"
+            >
+              {isSubmitting ? "Creating..." : "Create Recipe"}
+            </button>
+          </Form>
+          {actionData?.error && <p className="mt-3 text-sm text-red-700">{actionData.error}</p>}
+          {actionData?.success && (
+            <p className="mt-3 text-sm text-green-700">{actionData.success}</p>
+          )}
+        </section>
+      ) : (
+        <section className="mt-4">
+          <h2 className="text-xl font-medium">Saved Recipes</h2>
+          {loadError && <p className="mt-3 text-sm text-red-700">{loadError}</p>}
+          {!recipes.length ? (
+            <p className="mt-3 text-sm text-zinc-600">No recipes yet.</p>
+          ) : (
+            <ul className="mt-3 space-y-3">
+              {recipes.map((recipe) => (
+                <li key={recipe.id} className="rounded border p-4">
+                  <h3 className="font-semibold">{recipe.name}</h3>
+                  <p className="text-sm text-zinc-600">Servings: {recipe.servings}</p>
+                  <p className="mt-1 text-sm">
+                    Total macros: {recipe.macros.total.calories} kcal | P{" "}
+                    {recipe.macros.total.protein}g | C {recipe.macros.total.carbs}g | F{" "}
+                    {recipe.macros.total.fat}g
+                  </p>
+                  <Link to={`/recipes/${recipe.id}`} className="mt-2 inline-block text-sm underline">
+                    View Details
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
     </main>
   );
 }
