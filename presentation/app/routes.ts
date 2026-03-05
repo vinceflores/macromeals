@@ -10,6 +10,7 @@ export default [
     index("routes/home.tsx"),
     route("recipes", "routes/recipes.tsx"),
     route("recipes/:id", "routes/recipe-detail.tsx"),
+    route("recipes/search/external/", "routes/recipe/search-recipe.tsx") ,
   ]),
 
   route("auth/login", "routes/login.tsx"),
