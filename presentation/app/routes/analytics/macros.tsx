@@ -1,6 +1,10 @@
-import { ArrowRight, Factory } from "lucide-react"
-import { data, Link, useLoaderData } from "react-router"
+import type { Route } from ".react-router/types/app/routes/analytics/+types/macros"
+import { ArrowLeft, ArrowRight, Factory } from "lucide-react"
+import { data, Link, redirect, useLoaderData, useNavigate } from "react-router"
+import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
+import { Fetch } from "~/lib/auth.server"
+import { getSession } from "~/sessions.server"
 
 
 
@@ -17,30 +21,53 @@ export type MacroGoals = {
     current: Macros
 }
 
-export async function loader() {
-    const macros: MacroGoals = {
-        current: {
-            calories: 1000,
-            fat: 10.12,
-            protein: 67.8,
-            carbohydrates: 50.5,
-            water: 1000
-        },
-        goal: {
-            calories: 2000,
-            fat: 2000 * 0.25, // 25%
-            protein: 2000 * .30,// 30%
-            carbohydrates: 2000 * .45, // 46%
-            water: 2500 // 2500ml
-        }
+export async function loader({request}: Route.LoaderArgs) {
+    const session = await getSession(request.headers.get("Cookie"));
+    if (!session.data.access) return redirect("/auth/login");
+    try {
+        const res = await Fetch(
+            new Request(`${process.env.SERVER_URL}/api/analytics/progress/`, {
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }),
+            session,
+        ); 
+        const macros = await res.json()
+        return data({ ...macros, error: undefined })
+    } catch (error) {
+        console.log(error)
+        return data({error: error})
     }
-    return data({ ...macros, error: undefined })
+    // const macros: MacroGoals = {
+    //     current: {
+    //         calories: 1000,
+    //         fat: 10.12,
+    //         protein: 67.8,
+    //         carbohydrates: 50.5,
+    //         water: 1000
+    //     },
+    //     goal: {
+    //         calories: 2000,
+    //         fat: 2000 * 0.25, // 25%
+    //         protein: 2000 * .30,// 30%
+    //         carbohydrates: 2000 * .45, // 46%
+    //         water: 2500 // 2500ml
+    //     }
+    // }
+    // return data({ ...macros, error: undefined })
 }
 
 export default function CurrentDayMacros() {
     const data = useLoaderData<typeof loader>()
-    return (
-        <section className="w-full max-w-4xl space-y-3 mx-auto   my-10">
+    const navigate = useNavigate()
+    return data.error ? (
+        <div className="flex flex-col items-center justify-center h-screen w-full max-w-4xl space-y-3 mx-auto   my-10">
+            <h1>An error Occured</h1>
+            <Button variant={"link"} onClick={() => navigate(-1)}> <ArrowLeft className="h-3" /> Go back </Button>
+        </div>
+    ): (
+        <section className="w-full h-full max-w-4xl space-y-3 mx-auto   my-10">
             <div>
                 <h1 className="text-3xl font-bold">Progress Today </h1>
             </div>
