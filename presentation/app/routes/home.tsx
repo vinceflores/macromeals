@@ -53,6 +53,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               Go to Recipes
             </Link>
 
+            <Link
+              to="/analytics/macros"
+              className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+            >
+              Daily Progress
+            </Link>
+
             <UserNav
               email={loaderData.email}
               first_name={loaderData.first_name}
