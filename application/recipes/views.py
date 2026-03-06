@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated  # ✅ require login for recipes
 from requests import RequestException
 
 from .models import Recipe, Ingredient, RecipeIngredient
@@ -15,6 +15,7 @@ NUTRITION_PER_100G = {
     "egg": {"calories": 143, "protein": 13, "fat": 10, "carbs": 1.1},
 }
 
+
 def compute_macros(recipe: Recipe):
     total = {"calories": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0}
 
@@ -27,30 +28,29 @@ def compute_macros(recipe: Recipe):
             "carbs": float(ri.carbs_per_100g or 0),
         }
         if not any(per100.values()):
-            name = ri.ingredient.name.lower().strip()
+            name = (ri.ingredient.name or "").strip().lower()
             per100 = NUTRITION_PER_100G.get(
-                name, {"calories": 0, "protein": 0, "fat": 0, "carbs": 0}
+                name,
+                {"calories": 0.0, "protein": 0.0, "fat": 0.0, "carbs": 0.0},
             )
 
-        grams = ri.quantity  # assume grams for sprint 1
-        factor = grams / 100.0
-        for k in total:
-            total[k] += per100[k] * factor
+        qty = float(ri.quantity or 0)  # assumed grams if unit == "g"
+        factor = qty / 100.0
 
-    total = {k: round(v, 2) for k, v in total.items()}
-    servings = max(int(recipe.servings), 1)
-    per = {k: round(v / servings, 2) for k, v in total.items()}
-    return {"total": total, "perServing": per}
+        total["calories"] += float(per100.get("calories", 0)) * factor
+        total["protein"] += float(per100.get("protein", 0)) * factor
+        total["fat"] += float(per100.get("fat", 0)) * factor
+        total["carbs"] += float(per100.get("carbs", 0)) * factor
 
-def get_effective_user(request):
-    # If logged in, use that user; otherwise use first user (your superuser) for testing
-    return request.user if request.user.is_authenticated else User.objects.first()
+    # Round for nicer output
+    return {k: round(v, 2) for k, v in total.items()}
+
 
 class RecipeListCreateView(APIView):
+    permission_classes = [IsAuthenticated]  # ✅ must be logged in
+
     def get(self, request):
-        user = get_effective_user(request)
-        if user is None:
-            return Response({"detail": "Create a user first (py manage.py createsuperuser)."}, status=400)
+        user = request.user
 
         recipes = (
             Recipe.objects.filter(user=user)
@@ -64,9 +64,7 @@ class RecipeListCreateView(APIView):
         return Response(RecipeListSerializer(recipes, many=True).data)
 
     def post(self, request):
-        user = get_effective_user(request)
-        if user is None:
-            return Response({"detail": "Create a user first (py manage.py createsuperuser)."}, status=400)
+        user = request.user
 
         ser = RecipeCreateSerializer(data=request.data)
         if not ser.is_valid():
@@ -102,11 +100,12 @@ class RecipeListCreateView(APIView):
         recipe.macros = compute_macros(recipe)
         return Response(RecipeDetailSerializer(recipe).data, status=status.HTTP_201_CREATED)
 
+
 class RecipeDetailView(APIView):
+    permission_classes = [IsAuthenticated]  # ✅ must be logged in
+
     def get(self, request, recipe_id: int):
-        user = get_effective_user(request)
-        if user is None:
-            return Response({"detail": "Create a user first (py manage.py createsuperuser)."}, status=400)
+        user = request.user
 
         recipe = (
             Recipe.objects.filter(user=user, id=recipe_id)

@@ -1,9 +1,11 @@
-import { data, useActionData, useLoaderData, useNavigation } from "react-router"
+import { data, redirect, useActionData, useLoaderData, useNavigation } from "react-router"
 import { useRef, useState } from "react"
 
 import RecipesPage, { type ActionData, type IngredientRow } from "components/recipes-page"
 import type { CreateRecipePayload, FoodSearchResult, RecipeListItem } from "~/lib/recipes-api"
-import { createRecipe, listRecipes, searchFood } from "~/lib/recipes-api"
+import { searchFood } from "~/lib/recipes-api"
+import { Fetch } from "~/lib/auth.server"
+import { getSession } from "~/sessions.server"
 
 import type { Route } from "./+types/recipes"
 
@@ -14,18 +16,44 @@ export function meta(_: Route.MetaArgs) {
   ]
 }
 
-export async function loader() {
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await getSession(request.headers.get("Cookie"))
+  if (!session.data.access) return redirect("/auth/login")
+
   try {
-    const recipes = await listRecipes()
-    return data({ recipes, loadError: undefined })
+    // Important: load both profile and recipes with authenticated requests.
+    const profileRes = await Fetch(
+      new Request(`${process.env.SERVER_URL}/api/accounts/profile/`),
+      session,
+    )
+    const profile = await profileRes.json()
+
+    const recipesRes = await Fetch(
+      new Request(`${process.env.SERVER_URL}/recipe/`, {
+        headers: { "Content-Type": "application/json" },
+      }),
+      session,
+    )
+    const recipes = (await recipesRes.json()) as RecipeListItem[]
+    return data({ profile, recipes, loadError: undefined })
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to load recipes from backend."
-    return data({ recipes: [] as RecipeListItem[], loadError: message }, { status: 200 })
+    return data(
+      {
+        profile: { email: "", first_name: "", last_name: "" },
+        recipes: [] as RecipeListItem[],
+        loadError: message,
+      },
+      { status: 200 },
+    )
   }
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  const session = await getSession(request.headers.get("Cookie"))
+  if (!session.data.access) return redirect("/auth/login")
+
   const form = await request.formData()
   const name = String(form.get("name") ?? "").trim()
   const description = String(form.get("description") ?? "").trim()
@@ -103,12 +131,32 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   try {
-    await createRecipe({
-      name,
-      description,
-      servings,
-      ingredients: parsedIngredients,
-    })
+    // Important: create requests must also include JWT; otherwise DRF returns 401.
+    const res = await Fetch(
+      new Request(`${process.env.SERVER_URL}/recipe/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          description,
+          servings,
+          ingredients: parsedIngredients,
+        } satisfies CreateRecipePayload),
+      }),
+      session,
+    )
+
+    if (!res.ok) {
+      let message = `HTTP ${res.status}`
+      try {
+        const body = await res.json()
+        message = body?.detail ?? body?.errors ?? message
+      } catch {
+        // Keep default message when response body is not JSON.
+      }
+      return data<ActionData>({ error: String(message) }, { status: 400 })
+    }
+
     return data<ActionData>({ success: "Recipe created successfully." })
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to create recipe."
@@ -117,7 +165,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function RecipesRoute() {
-  const { recipes, loadError } = useLoaderData<typeof loader>()
+  const { profile, recipes, loadError } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === "submitting"
@@ -232,6 +280,7 @@ export default function RecipesRoute() {
 
   return (
     <RecipesPage
+      userProfile={profile}
       recipes={recipes}
       loadError={loadError}
       actionData={actionData}

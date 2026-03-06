@@ -6,7 +6,7 @@ import { getSession } from "~/sessions.server";
 import { redirect } from "react-router";
 import { Fetch } from "~/lib/auth.server";
 import { Button } from "~/components/ui/button";
-import { UserNav } from "../../components/user-navigation";
+import AppHeader from "../../components/app-header";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -39,28 +39,28 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function Home({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-6xl items-center px-6 justify-between">
-          <div className="font-bold text-xl tracking-tight text-primary">
-            MacroMeals
-          </div>
+      <AppHeader
+        profile={{
+          email: loaderData.email,
+          first_name: loaderData.first_name,
+          last_name: loaderData.last_name,
+        }}
+        showHome={false}
+      >
+        <Link
+          to="/recipes"
+          className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+        >
+          Go to Recipes
+        </Link>
 
-          <div className="flex items-center space-x-4">
-            <Link
-              to="/recipes"
-              className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
-            >
-              Go to Recipes
-            </Link>
-
-            <UserNav
-              email={loaderData.email}
-              first_name={loaderData.first_name}
-              last_name={loaderData.last_name}
-            />
-          </div>
-        </div>
-      </header>
+        <Link
+          to="/analytics/macros"
+          className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+        >
+          Daily Progress
+        </Link>
+      </AppHeader>
 
       <main className="mx-auto w-full max-w-6xl p-6">
         <div className="space-y-4">
