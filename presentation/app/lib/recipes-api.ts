@@ -1,4 +1,19 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000"
+function getApiBaseUrl() {
+  // Important: route loaders/actions run on the server, so API host resolution
+  // must work in both SSR (Node) and browser contexts.
+  if (import.meta.env.SSR) {
+    return (
+      process.env.API_BASE_URL ??
+      process.env.SERVER_URL ??
+      import.meta.env.VITE_API_BASE_URL ??
+      "http://backend:8000"
+    )
+  }
+
+  return import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000"
+}
+
+const API_BASE_URL = getApiBaseUrl().replace(/\/+$/, "")
 
 type Macros = {
   total: {
@@ -79,7 +94,7 @@ type FoodSearchResponse = {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await fetch(`${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`, {
     headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
     ...init,
   })
