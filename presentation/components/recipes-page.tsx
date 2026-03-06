@@ -113,9 +113,9 @@ export default function RecipesPage({
 
       <main className="mx-auto w-full max-w-5xl p-6">
         <h1 className="text-3xl font-semibold">Recipes</h1>
-        <p className="mt-2 text-sm text-zinc-600">
+        {/* <p className="mt-2 text-sm text-zinc-600">
           This page reads from and writes to your Django recipe endpoints.
-        </p>
+        </p> */}
 
       {/* Keep create flow and saved list in separate tabs for cleaner UX. */}
       <div className="mt-6 flex gap-2">
