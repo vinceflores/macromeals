@@ -21,19 +21,32 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!session.data.access) return redirect("/auth/login")
 
   try {
-    // Important: use authenticated server fetch so JWT is attached.
-    const res = await Fetch(
+    // Important: load both profile and recipes with authenticated requests.
+    const profileRes = await Fetch(
+      new Request(`${process.env.SERVER_URL}/api/accounts/profile/`),
+      session,
+    )
+    const profile = await profileRes.json()
+
+    const recipesRes = await Fetch(
       new Request(`${process.env.SERVER_URL}/recipe/`, {
         headers: { "Content-Type": "application/json" },
       }),
       session,
     )
-    const recipes = (await res.json()) as RecipeListItem[]
-    return data({ recipes, loadError: undefined })
+    const recipes = (await recipesRes.json()) as RecipeListItem[]
+    return data({ profile, recipes, loadError: undefined })
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to load recipes from backend."
-    return data({ recipes: [] as RecipeListItem[], loadError: message }, { status: 200 })
+    return data(
+      {
+        profile: { email: "", first_name: "", last_name: "" },
+        recipes: [] as RecipeListItem[],
+        loadError: message,
+      },
+      { status: 200 },
+    )
   }
 }
 
@@ -152,7 +165,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function RecipesRoute() {
-  const { recipes, loadError } = useLoaderData<typeof loader>()
+  const { profile, recipes, loadError } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === "submitting"
@@ -267,6 +280,7 @@ export default function RecipesRoute() {
 
   return (
     <RecipesPage
+      userProfile={profile}
       recipes={recipes}
       loadError={loadError}
       actionData={actionData}

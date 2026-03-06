@@ -1,5 +1,5 @@
-import { Form, Link } from "react-router";
-import { useState } from "react";
+import { Form, Link, useSearchParams } from "react-router";
+import AppHeader from "./app-header";
 
 import type { FoodSearchResult, RecipeListItem } from "~/lib/recipes-api";
 
@@ -22,6 +22,11 @@ export type IngredientRow = {
 };
 
 export type RecipesPageProps = {
+  userProfile: {
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
   recipes: RecipeListItem[];
   loadError?: string;
   actionData?: ActionData;
@@ -41,6 +46,7 @@ export type RecipesPageProps = {
 };
 
 export default function RecipesPage({
+  userProfile,
   recipes,
   loadError,
   actionData,
@@ -54,14 +60,62 @@ export default function RecipesPage({
   onRemoveIngredientRow,
   onAddIngredientRow,
 }: RecipesPageProps) {
-  const [activeTab, setActiveTab] = useState<"create" | "saved">("create");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab: "create" | "saved" =
+    searchParams.get("tab") === "saved" ? "saved" : "create";
+
+  function setActiveTab(tab: "create" | "saved") {
+    // Keep tab in URL so navigation back from detail can restore Saved tab.
+    const next = new URLSearchParams(searchParams);
+    if (tab === "saved") {
+      next.set("tab", "saved");
+    } else {
+      next.delete("tab");
+    }
+    setSearchParams(next, { replace: true });
+  }
+
+  // Important: support both old API shape (`macros.calories`) and new shape
+  // (`macros.total.calories`) so saved-recipe rendering never crashes.
+  function getTotalMacros(recipe: RecipeListItem) {
+    const maybeAny = recipe as unknown as {
+      macros?: {
+        total?: { calories?: number; protein?: number; carbs?: number; fat?: number };
+        calories?: number;
+        protein?: number;
+        carbs?: number;
+        carbohydrates?: number;
+        fat?: number;
+      };
+    };
+
+    const total = maybeAny.macros?.total;
+    if (total) {
+      return {
+        calories: total.calories ?? 0,
+        protein: total.protein ?? 0,
+        carbs: total.carbs ?? 0,
+        fat: total.fat ?? 0,
+      };
+    }
+
+    return {
+      calories: maybeAny.macros?.calories ?? 0,
+      protein: maybeAny.macros?.protein ?? 0,
+      carbs: maybeAny.macros?.carbs ?? maybeAny.macros?.carbohydrates ?? 0,
+      fat: maybeAny.macros?.fat ?? 0,
+    };
+  }
 
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <h1 className="text-3xl font-semibold">Recipes</h1>
-      <p className="mt-2 text-sm text-zinc-600">
-        This page reads from and writes to your Django recipe endpoints.
-      </p>
+    <div className="flex flex-col min-h-screen">
+      <AppHeader profile={userProfile} />
+
+      <main className="mx-auto w-full max-w-5xl p-6">
+        <h1 className="text-3xl font-semibold">Recipes</h1>
+        <p className="mt-2 text-sm text-zinc-600">
+          This page reads from and writes to your Django recipe endpoints.
+        </p>
 
       {/* Keep create flow and saved list in separate tabs for cleaner UX. */}
       <div className="mt-6 flex gap-2">
@@ -233,24 +287,27 @@ export default function RecipesPage({
             <p className="mt-3 text-sm text-zinc-600">No recipes yet.</p>
           ) : (
             <ul className="mt-3 space-y-3">
-              {recipes.map((recipe) => (
-                <li key={recipe.id} className="rounded border p-4">
-                  <h3 className="font-semibold">{recipe.name}</h3>
-                  <p className="text-sm text-zinc-600">Servings: {recipe.servings}</p>
-                  <p className="mt-1 text-sm">
-                    Total macros: {recipe.macros.total.calories} kcal | P{" "}
-                    {recipe.macros.total.protein}g | C {recipe.macros.total.carbs}g | F{" "}
-                    {recipe.macros.total.fat}g
-                  </p>
-                  <Link to={`/recipes/${recipe.id}`} className="mt-2 inline-block text-sm underline">
-                    View Details
-                  </Link>
-                </li>
-              ))}
+              {recipes.map((recipe) => {
+                const total = getTotalMacros(recipe);
+                return (
+                  <li key={recipe.id} className="rounded border p-4">
+                    <h3 className="font-semibold">{recipe.name}</h3>
+                    <p className="text-sm text-zinc-600">Servings: {recipe.servings}</p>
+                    <p className="mt-1 text-sm">
+                      Total macros: {total.calories} kcal | P {total.protein}g | C {total.carbs}g
+                      {" | "}F {total.fat}g
+                    </p>
+                    <Link to={`/recipes/${recipe.id}`} className="mt-2 inline-block text-sm underline">
+                      View Details
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
       )}
-    </main>
+      </main>
+    </div>
   );
 }
