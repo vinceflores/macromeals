@@ -11,6 +11,7 @@ export default [
     route("recipes", "routes/recipes.tsx"),
     route("recipes/:id", "routes/recipe-detail.tsx"),
     route("analytics/macros", "routes/analytics/macros.tsx"),
+    route("analytics/logging", "routes/analytics/logging.tsx"),
   ]),
 
   route("auth/login", "routes/login.tsx"),

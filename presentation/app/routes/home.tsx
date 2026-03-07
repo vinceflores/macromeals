@@ -60,6 +60,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         >
           Daily Progress
         </Link>
+
+        <Link
+          to="/analytics/logging?mode=recipe"
+          className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+        >
+          Meal Logging
+        </Link>
       </AppHeader>
 
       <main className="mx-auto w-full max-w-6xl p-6">

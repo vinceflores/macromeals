@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     "recipes",
     "accounts",
     "auths",
+    "analytics",
+    "meal_logs",
     
 ]
 
