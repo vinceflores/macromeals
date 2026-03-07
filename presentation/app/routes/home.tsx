@@ -20,6 +20,7 @@ export function meta(_: Route.MetaArgs) {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
+  console.log("Fetching from:", process.env.SERVER_URL)
   if (session.data.access) {
     try {
       const res = await Fetch(
