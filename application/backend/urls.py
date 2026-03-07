@@ -37,5 +37,6 @@ urlpatterns = [
     path("api/auth/", include("auths.urls")),
     path("api/accounts/", include("accounts.urls")),
     path("api/analytics/", include("analytics.urls")),
+    path("api/logging/", include("meal_logs.urls")),
     #test
 ]
