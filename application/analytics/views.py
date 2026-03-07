@@ -1,29 +1,59 @@
 from django.shortcuts import render
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from meal_logs.models import MealLog
+from django.utils   import timezone
+import numpy as np
+from collections import namedtuple
 
+from meal_logs.serializers import MealLogSerializer
 # Create your views here.
 
 class CurrentDayProgressView(APIView): 
-    
+    permission_classes = [IsAuthenticated]
     def get(self, request): 
-        
+        user = self.request.user
+        # created_at
+        today = timezone.now().date()
+        meals = MealLog.objects.filter(user=user, created_at__date=today)
+        macros_np= np.array([m for m in meals.values_list( 'calories','carbohydrates', 'fat', 'protein')])
+        fields = [ 'calories','carbohydrates', 'fat', 'protein']
+        current = np.round(np.sum(macros_np,axis=0), 2)
+        Totals = namedtuple('Totals', fields)
+        totals = Totals(*current)
+
+        # print(totals)
         return Response(
             {   
              "current": {
-                "calories": 1000,
-                "fat": 10.12,
-                "protein": 67.8,
-                "carbohydrates": 50.5,
+                # "calories": 1000,
+                "calories": totals.calories ,
+                # "fat": 10.12,
+                "fat": totals.fat,
+                "protein": totals.protein,
+                # "protein": 67.8,
+                # "carbohydrates": 50.5,
+                "carbohydrates": totals.carbohydrates,
                 "water": 1000
                 },
              "goal": {
-                "calories": 2000,
-                "fat": 2000 * 0.25, 
-                "protein": 2000 * .30,
-                "carbohydrates": 2000 * .45, 
-                "water": 2500 
+                "calories": user.daily_calorie_goal,
+                "fat": user.daily_calorie_goal/8 * user.fat_goal/100 , 
+                "protein":  user.daily_calorie_goal/4 * user.protein_goal/100,
+                "carbohydrates": user.daily_calorie_goal/4 * user.carbs_goal/100, 
+                "water": user.water_goal*1000
              }
             }
         )       
 
+class CurrentDayLoggedMeals(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        today = timezone.now().date()
+        meal_log = MealLog.objects.filter( user=request.user, created_at__date=today).first()
+        if not meal_log:
+            return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(MealLogSerializer(meal_log).data, status=status.HTTP_200_OK) 

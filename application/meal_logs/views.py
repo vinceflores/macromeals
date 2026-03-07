@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from .models import MealLog
 from .serializers import MealLogCreateSerializer, MealLogSerializer
-
+from django.utils   import timezone
 
 def _compute_macros_from_ingredients(ingredients):
     totals = {"calories": 0.0, "protein": 0.0, "carbohydrates": 0.0, "fat": 0.0}
@@ -88,3 +88,4 @@ class MealLogDetailView(APIView):
             return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
         meal_log.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+

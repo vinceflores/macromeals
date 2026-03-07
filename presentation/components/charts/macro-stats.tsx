@@ -110,7 +110,7 @@ export function CaloriesStat(props: ProgressStatProps) {
                                                     y={(viewBox.cy || 0) + 24}
                                                     className="fill-muted-foreground"
                                                 >
-                                                    Remaining
+                                                    {data.unit}
                                                 </tspan>
                                             </text>
                                         )
