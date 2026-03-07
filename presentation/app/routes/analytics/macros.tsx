@@ -104,7 +104,7 @@ export default function CurrentDayMacros() {
 
             <div className="space-y-2">
                 <h1 className="text-3xl font-bold"> Meals today </h1>
-                <Link to="#" className="flex items-center" > Go to meals <ArrowRight className="h-3" /> </Link>
+                <Link to="/analytics/logging" className="flex items-center" > Go to meals <ArrowRight className="h-3" /> </Link>
             </div>
         </section>
     )
