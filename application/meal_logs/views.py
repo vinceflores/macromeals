@@ -7,6 +7,18 @@ from .models import MealLog
 from .serializers import MealLogCreateSerializer, MealLogSerializer
 
 
+def _compute_macros_from_ingredients(ingredients):
+    totals = {"calories": 0.0, "protein": 0.0, "carbohydrates": 0.0, "fat": 0.0}
+    for ingredient in ingredients:
+        qty = float(ingredient.get("quantity", 0) or 0)
+        factor = qty / 100.0
+        totals["calories"] += float(ingredient.get("calories_per_100g", 0) or 0) * factor
+        totals["protein"] += float(ingredient.get("protein_per_100g", 0) or 0) * factor
+        totals["carbohydrates"] += float(ingredient.get("carbs_per_100g", 0) or 0) * factor
+        totals["fat"] += float(ingredient.get("fat_per_100g", 0) or 0) * factor
+    return {key: round(value, 2) for key, value in totals.items()}
+
+
 class MealLogListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -19,5 +31,60 @@ class MealLogListCreateView(APIView):
         if not serializer.is_valid():
             return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        meal_log = MealLog.objects.create(user=request.user, **serializer.validated_data)
+        validated = serializer.validated_data
+        ingredients = validated.get("ingredients", [])
+        computed = _compute_macros_from_ingredients(ingredients)
+        meal_log = MealLog.objects.create(
+            user=request.user,
+            meal_name=validated["meal_name"],
+            description=validated.get("description", ""),
+            ingredients=ingredients,
+            servings=float(validated.get("servings", 1)),
+            calories=computed["calories"],
+            protein=computed["protein"],
+            carbohydrates=computed["carbohydrates"],
+            fat=computed["fat"],
+        )
         return Response(MealLogSerializer(meal_log).data, status=status.HTTP_201_CREATED)
+
+
+class MealLogDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, log_id: int):
+        meal_log = MealLog.objects.filter(id=log_id, user=request.user).first()
+        if not meal_log:
+            return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(MealLogSerializer(meal_log).data, status=status.HTTP_200_OK)
+
+    def put(self, request, log_id: int):
+        meal_log = MealLog.objects.filter(id=log_id, user=request.user).first()
+        if not meal_log:
+            return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MealLogCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        validated = serializer.validated_data
+        ingredients = validated.get("ingredients", [])
+        computed = _compute_macros_from_ingredients(ingredients)
+
+        meal_log.meal_name = validated["meal_name"]
+        meal_log.description = validated.get("description", "")
+        meal_log.ingredients = ingredients
+        meal_log.servings = float(validated.get("servings", meal_log.servings or 1))
+        meal_log.calories = computed["calories"]
+        meal_log.protein = computed["protein"]
+        meal_log.carbohydrates = computed["carbohydrates"]
+        meal_log.fat = computed["fat"]
+        meal_log.save()
+
+        return Response(MealLogSerializer(meal_log).data, status=status.HTTP_200_OK)
+
+    def delete(self, request, log_id: int):
+        meal_log = MealLog.objects.filter(id=log_id, user=request.user).first()
+        if not meal_log:
+            return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        meal_log.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

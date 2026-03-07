@@ -16,6 +16,13 @@ class RecipeCreateSerializer(serializers.Serializer):
     servings = serializers.IntegerField(min_value=1)
     ingredients = IngredientInputSerializer(many=True)
 
+
+class RecipeUpdateSerializer(serializers.Serializer):
+    # Update scope for the shared editor page.
+    name = serializers.CharField(max_length=255)
+    description = serializers.CharField(required=False, allow_blank=True, default="")
+    ingredients = IngredientInputSerializer(many=True)
+
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     ingredient_name = serializers.CharField(source="ingredient.name", read_only=True)
 

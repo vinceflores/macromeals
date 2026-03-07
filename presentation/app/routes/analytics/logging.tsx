@@ -10,9 +10,17 @@ import { Fetch } from "~/lib/auth.server"
 import { searchFood, type FoodSearchResult, type RecipeListItem } from "~/lib/recipes-api"
 import { getSession } from "~/sessions.server"
 
+type MealLogIngredient = {
+  name: string
+  quantity: number
+  unit: string
+}
+
 type MealLog = {
   id: number
   meal_name: string
+  description: string
+  ingredients: MealLogIngredient[]
   calories: number
   protein: number
   carbohydrates: number
@@ -45,19 +53,28 @@ type RecipeMacroShape = {
   fat?: number
 }
 
+async function getErrorMessage(response: Response, fallback: string) {
+  const contentType = response.headers.get("Content-Type") ?? ""
+  if (contentType.includes("application/json")) {
+    try {
+      const body = (await response.json()) as { detail?: string; errors?: unknown }
+      if (body.detail) return body.detail
+      if (body.errors) return JSON.stringify(body.errors)
+    } catch {
+      // Fall back to status text when JSON parsing fails.
+    }
+  }
+  return `${fallback} (HTTP ${response.status})`
+}
+
 function getRecipeMacros(recipe: { macros?: RecipeMacroShape }) {
   const total = recipe.macros?.total
   if (total) {
-    const totalCalories = total.calories ?? 0
-    const totalProtein = total.protein ?? 0
-    const totalCarbs = total.carbs ?? 0
-    const totalFat = total.fat ?? 0
-
     return {
-      calories: totalCalories,
-      protein: totalProtein,
-      carbohydrates: totalCarbs,
-      fat: totalFat,
+      calories: total.calories ?? 0,
+      protein: total.protein ?? 0,
+      carbohydrates: total.carbs ?? 0,
+      fat: total.fat ?? 0,
     }
   }
 
@@ -107,12 +124,42 @@ export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const intent = String(form.get("intent") ?? "simple")
 
+  if (intent === "delete_log") {
+    const logId = Number(String(form.get("log_id") ?? "0"))
+    if (!logId) {
+      return data<ActionData>({ error: "Invalid log id." }, { status: 400 })
+    }
+
+    try {
+      const response = await Fetch(
+        new Request(`${process.env.SERVER_URL}/api/logging/${logId}/`, {
+          method: "DELETE",
+        }),
+        session,
+      )
+      if (!response.ok && response.status !== 204) {
+        const message = await getErrorMessage(response, "Failed to remove log")
+        return data<ActionData>({ error: message }, { status: 400 })
+      }
+      return data<ActionData>({ success: "Log removed." })
+    } catch (error) {
+      return data<ActionData>({ error: String(error) }, { status: 400 })
+    }
+  }
+
   let payload: {
     meal_name: string
-    calories: number
-    protein: number
-    carbohydrates: number
-    fat: number
+    description: string
+    servings: number
+    ingredients: Array<{
+      name: string
+      quantity: number
+      unit: string
+      calories_per_100g: number
+      protein_per_100g: number
+      carbs_per_100g: number
+      fat_per_100g: number
+    }>
   }
 
   if (intent === "recipe") {
@@ -132,27 +179,47 @@ export async function action({ request }: Route.ActionArgs) {
         }),
         session,
       )
+      if (!recipeRes.ok) {
+        const message = await getErrorMessage(recipeRes, "Failed to load recipe")
+        return data<ActionData>({ error: message }, { status: 400 })
+      }
       const recipe = (await recipeRes.json()) as {
         servings?: number
         name: string
+        description?: string
+        ingredients?: Array<{
+          ingredient_name: string
+          quantity: number
+          unit: string
+          calories_per_100g?: number
+          protein_per_100g?: number
+          carbs_per_100g?: number
+          fat_per_100g?: number
+        }>
         macros?: RecipeMacroShape
       }
-      const macros = getRecipeMacros(recipe)
       const recipeServings = recipe.servings && recipe.servings > 0 ? recipe.servings : 1
       const factor = servingsToLog / recipeServings
 
       payload = {
-        meal_name: `${recipe.name} (${servingsToLog} serving${servingsToLog === 1 ? "" : "s"})`,
-        calories: Number((macros.calories * factor).toFixed(2)),
-        protein: Number((macros.protein * factor).toFixed(2)),
-        carbohydrates: Number((macros.carbohydrates * factor).toFixed(2)),
-        fat: Number((macros.fat * factor).toFixed(2)),
+        meal_name: recipe.name,
+        description: recipe.description ?? "",
+        servings: servingsToLog,
+        ingredients: (recipe.ingredients ?? []).map((ing) => ({
+          name: ing.ingredient_name,
+          quantity: Number((ing.quantity * factor).toFixed(2)),
+          unit: ing.unit || "g",
+          calories_per_100g: ing.calories_per_100g ?? 0,
+          protein_per_100g: ing.protein_per_100g ?? 0,
+          carbs_per_100g: ing.carbs_per_100g ?? 0,
+          fat_per_100g: ing.fat_per_100g ?? 0,
+        })),
       }
     } catch (error) {
       return data<ActionData>({ error: String(error) }, { status: 400 })
     }
-  } else {
-    const mealName = String(form.get("meal_name") ?? "").trim()
+  } else if (intent === "simple") {
+    const itemName = String(form.get("meal_name") ?? "").trim()
     const quantity = Number(String(form.get("quantity") ?? "0"))
     const unit = String(form.get("unit") ?? "g").trim() || "g"
     const fdcId = Number(String(form.get("fdc_id") ?? "0"))
@@ -161,7 +228,7 @@ export async function action({ request }: Route.ActionArgs) {
     const per100Carbs = Number(String(form.get("carbs_per_100g") ?? "0"))
     const per100Fat = Number(String(form.get("fat_per_100g") ?? "0"))
 
-    if (!mealName) {
+    if (!itemName) {
       return data<ActionData>({ error: "Select a food first." }, { status: 400 })
     }
     if (!fdcId) {
@@ -171,15 +238,24 @@ export async function action({ request }: Route.ActionArgs) {
       return data<ActionData>({ error: "Size must be greater than 0." }, { status: 400 })
     }
 
-    const factor = quantity / 100
-
     payload = {
-      meal_name: `${mealName} (${quantity}${unit})`,
-      calories: Number.isNaN(per100Calories) ? 0 : Number((per100Calories * factor).toFixed(2)),
-      protein: Number.isNaN(per100Protein) ? 0 : Number((per100Protein * factor).toFixed(2)),
-      carbohydrates: Number.isNaN(per100Carbs) ? 0 : Number((per100Carbs * factor).toFixed(2)),
-      fat: Number.isNaN(per100Fat) ? 0 : Number((per100Fat * factor).toFixed(2)),
+      meal_name: itemName,
+      description: "",
+      servings: 1,
+      ingredients: [
+        {
+          name: itemName,
+          quantity,
+          unit,
+          calories_per_100g: Number.isNaN(per100Calories) ? 0 : per100Calories,
+          protein_per_100g: Number.isNaN(per100Protein) ? 0 : per100Protein,
+          carbs_per_100g: Number.isNaN(per100Carbs) ? 0 : per100Carbs,
+          fat_per_100g: Number.isNaN(per100Fat) ? 0 : per100Fat,
+        },
+      ],
     }
+  } else {
+    return data<ActionData>({ error: "Unknown action intent." }, { status: 400 })
   }
 
   try {
@@ -193,8 +269,8 @@ export async function action({ request }: Route.ActionArgs) {
     )
 
     if (!response.ok) {
-      const body = await response.json()
-      return data<ActionData>({ error: JSON.stringify(body) }, { status: 400 })
+      const message = await getErrorMessage(response, "Failed to save meal log")
+      return data<ActionData>({ error: message }, { status: 400 })
     }
 
     return data<ActionData>({ success: "Meal logged." })
@@ -274,10 +350,7 @@ export default function MealLoggingPage() {
       <AppHeader profile={profile} />
 
       <main className="mx-auto w-full max-w-5xl p-6 space-y-4">
-        <div>
-          <h1 className="text-3xl font-semibold">Meal Logging</h1>
-          <p className="text-sm text-muted-foreground">Log from a saved recipe or add an item manually.</p>
-        </div>
+        <h1 className="text-3xl font-semibold">Meal Logging</h1>
 
         <Card>
           <CardHeader>
@@ -304,67 +377,62 @@ export default function MealLoggingPage() {
                   No saved recipes yet. <Link to="/recipes" className="underline">Create a recipe first</Link>.
                 </p>
               ) : (
-                <>
-                  <Form method="post" className="space-y-3">
-                    <input type="hidden" name="intent" value="recipe" />
-                    <input type="hidden" name="recipe_id" value={selectedRecipeId ?? ""} />
-                    <div>
-                      <Label htmlFor="recipe_search" className="py-1">Recipe</Label>
-                      <Input
-                        id="recipe_search"
-                        placeholder="Type to search recipes..."
-                        value={recipeQuery}
-                        
-                        onChange={(event) => {
-                          setRecipeQuery(event.target.value)
-                          setSelectedRecipeId(null)
-                        }}
-                        autoComplete="off"
-                      />
-                    </div>
-                    <div className="max-h-48 overflow-auto rounded border p-1">
-                      {!filteredRecipes.length ? (
-                        <p className="px-2 py-1 text-sm text-muted-foreground">No recipes found.</p>
-                      ) : (
-                        filteredRecipes.map((recipe) => {
-                          const calories = getRecipeCalories(recipe)
-                          const isSelected = selectedRecipeId === recipe.id
-                          return (
-                            <button
-                              key={recipe.id}
-                              type="button"
-                              onClick={() => {
-                                setSelectedRecipeId(recipe.id)
-                                setRecipeQuery(recipe.name)
-                              }}
-                              className={`w-full rounded px-2 py-2 text-left text-sm hover:bg-accent ${isSelected ? "bg-accent" : ""}`}
-                            >
-                              <p className="font-medium">{recipe.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {calories.perServing} kcal per 1 serving
-                              </p>
-                            </button>
-                          )
-                        })
-                      )}
-                    </div>
-                    {selectedRecipeId ? null : (
-                      <p className="text-xs text-muted-foreground">Select one recipe from the list.</p>
+                <Form method="post" className="space-y-3">
+                  <input type="hidden" name="intent" value="recipe" />
+                  <input type="hidden" name="recipe_id" value={selectedRecipeId ?? ""} />
+                  <div>
+                    <Label htmlFor="recipe_search" className="py-1">Recipe</Label>
+                    <Input
+                      id="recipe_search"
+                      placeholder="Type to search recipes..."
+                      value={recipeQuery}
+                      onChange={(event) => {
+                        setRecipeQuery(event.target.value)
+                        setSelectedRecipeId(null)
+                      }}
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-auto rounded border p-1">
+                    {!filteredRecipes.length ? (
+                      <p className="px-2 py-1 text-sm text-muted-foreground">No recipes found.</p>
+                    ) : (
+                      filteredRecipes.map((recipe) => {
+                        const calories = getRecipeCalories(recipe)
+                        const isSelected = selectedRecipeId === recipe.id
+                        return (
+                          <button
+                            key={recipe.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedRecipeId(recipe.id)
+                              setRecipeQuery(recipe.name)
+                            }}
+                            className={`w-full rounded px-2 py-2 text-left text-sm hover:bg-accent ${isSelected ? "bg-accent" : ""}`}
+                          >
+                            <p className="font-medium">{recipe.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {calories.perServing} kcal per 1 serving
+                            </p>
+                          </button>
+                        )
+                      })
                     )}
-                    <div>
-                      <Label htmlFor="servings_to_log">Servings</Label>
-                      <Input id="servings_to_log" name="servings_to_log" type="number" min="0.1" step="0.1" defaultValue="1" className="mt-1 w-32 rounded border px-3 py-2" required/>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button type="submit" disabled={isSubmitting || !selectedRecipeId}>
+                  </div>
+                  {selectedRecipeId ? null : <p className="text-xs text-muted-foreground">Select one recipe from the list.</p>}
+                  <div>
+                    <Label htmlFor="servings_to_log">Servings</Label>
+                    <Input id="servings_to_log" name="servings_to_log" type="number" min="0.1" step="0.1" defaultValue="1" className="mt-1 w-32 rounded border px-3 py-2" required />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={isSubmitting || !selectedRecipeId}>
                       {isSubmitting ? "Saving..." : "Log Recipe"}
-                      </Button>
-                      <Link to="/recipes" className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent">
+                    </Button>
+                    <Link to="/recipes" className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent">
                       Go to Recipes
-                      </Link>
-                    </div>
-                  </Form>
-                </>
+                    </Link>
+                  </div>
+                </Form>
               )}
             </CardContent>
           </Card>
@@ -374,7 +442,6 @@ export default function MealLoggingPage() {
               <CardTitle>Log An Item</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Single-item USDA flow so logging stays simple. */}
               <Form method="post" className="space-y-3">
                 <input type="hidden" name="intent" value="simple" />
                 <div className="relative">
@@ -421,25 +488,15 @@ export default function MealLoggingPage() {
                   </div>
                 </div>
 
-                {selectedFood ? (
-                  <p className="text-xs text-muted-foreground">
-                    Selected: {selectedFood.description} ({selectedFood.macros.calories} kcal per 100g)
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">Select one food from USDA results.</p>
-                )}
-
                 <input type="hidden" name="fdc_id" value={selectedFood?.fdcId ?? ""} />
                 <input type="hidden" name="calories_per_100g" value={selectedFood?.macros.calories ?? 0} />
                 <input type="hidden" name="protein_per_100g" value={selectedFood?.macros.protein ?? 0} />
                 <input type="hidden" name="carbs_per_100g" value={selectedFood?.macros.carbs ?? 0} />
                 <input type="hidden" name="fat_per_100g" value={selectedFood?.macros.fat ?? 0} />
 
-                <div>
-                  <Button type="submit" disabled={isSubmitting || !selectedFood}>
-                    {isSubmitting ? "Saving..." : "Log 1 Item"}
-                  </Button>
-                </div>
+                <Button type="submit" disabled={isSubmitting || !selectedFood}>
+                  {isSubmitting ? "Saving..." : "Log 1 Item"}
+                </Button>
               </Form>
             </CardContent>
           </Card>
@@ -450,7 +507,7 @@ export default function MealLoggingPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Meals</CardTitle>
+            <CardTitle>Saved Meal Logs</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
@@ -463,6 +520,17 @@ export default function MealLoggingPage() {
                   <p className="text-sm text-muted-foreground">
                     {log.calories} kcal | P {log.protein}g | C {log.carbohydrates}g | F {log.fat}g
                   </p>
+                  <div className="mt-2 flex gap-2">
+                    <Link to={`/edit/log/${log.id}`} className="rounded border px-3 py-1 text-sm hover:bg-accent">
+                      Edit
+                    </Link>
+                    {/* Delete is scoped to this single log only. */}
+                    <Form method="post">
+                      <input type="hidden" name="intent" value="delete_log" />
+                      <input type="hidden" name="log_id" value={log.id} />
+                      <Button type="submit" variant="outline">Remove</Button>
+                    </Form>
+                  </div>
                 </div>
               ))
             )}
