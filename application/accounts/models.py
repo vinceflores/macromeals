@@ -63,11 +63,10 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True
     )
-    water_goal = models.PositiveIntegerField(
-        default = 2500,
-        validators = [
-            MinValueValidator(0)
-        ],
+    water_goal = models.DecimalField(
+        default = 2.5,
+        max_digits=3,
+        decimal_places=1,
         null=True,
         blank=True
     )

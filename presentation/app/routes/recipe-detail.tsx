@@ -29,6 +29,7 @@ export function meta(_: Route.MetaArgs) {
 }
 
 function normalizeMacros(recipe: RecipeDetail) {
+  // Support old and new backend macro payloads.
   const flat = recipe.macros as unknown as {
     calories?: number
     protein?: number
@@ -44,6 +45,7 @@ function normalizeMacros(recipe: RecipeDetail) {
     fat: flat.fat ?? 0,
   }
 
+  // Always derive per-serving from total and recipe servings.
   const servings = Math.max(Number(recipe.servings) || 1, 1)
   const perServing = {
     calories: Math.round((total.calories / servings) * 100) / 100,
@@ -68,6 +70,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 
   try {
+    // Protected endpoints must be called through Fetch so JWT is attached.
     const profileRes = await Fetch(
       new Request(`${process.env.SERVER_URL}/api/accounts/profile/`),
       session,
@@ -111,12 +114,7 @@ export default function RecipeDetailRoute() {
           </>
         ) : (
           <>
-            <div className="mt-4 flex items-center justify-between">
-              <h1 className="text-3xl font-semibold">{recipe.name}</h1>
-              <Link to={`/edit/recipe/${recipe.id}`} className="rounded border px-3 py-2 text-sm hover:bg-accent">
-                Edit
-              </Link>
-            </div>
+            <h1 className="mt-4 text-3xl font-semibold">{recipe.name}</h1>
             <p className="mt-2 text-sm text-zinc-600">Servings: {recipe.servings}</p>
             {recipe.description ? <p className="mt-3">{recipe.description}</p> : null}
 
