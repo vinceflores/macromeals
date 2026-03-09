@@ -1,4 +1,4 @@
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,6 +24,9 @@ class MealLogListCreateView(APIView):
 
     def get(self, request):
         logs = MealLog.objects.filter(user=request.user)
+        date_param = request.query_params.get('date')
+        if date_param:
+            logs = logs.filter(date_logged=date_param)
         return Response({"results": MealLogSerializer(logs, many=True).data})
 
     def post(self, request):
@@ -38,6 +41,7 @@ class MealLogListCreateView(APIView):
             user=request.user,
             meal_name=validated["meal_name"],
             description=validated.get("description", ""),
+            date_logged=validated.get("date_logged"),
             ingredients=ingredients,
             servings=float(validated.get("servings", 1)),
             calories=computed["calories"],
@@ -74,6 +78,8 @@ class MealLogDetailView(APIView):
         meal_log.description = validated.get("description", "")
         meal_log.ingredients = ingredients
         meal_log.servings = float(validated.get("servings", meal_log.servings or 1))
+        if "date_logged" in validated:
+            meal_log.date_logged = validated["date_logged"]
         meal_log.calories = computed["calories"]
         meal_log.protein = computed["protein"]
         meal_log.carbohydrates = computed["carbohydrates"]
@@ -88,3 +94,37 @@ class MealLogDetailView(APIView):
             return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
         meal_log.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def patch(self, request, log_id: int):
+        meal_log = MealLog.objects.filter(id=log_id, user=request.user).first()
+        if not meal_log:
+            return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        ingredients = request.data.get("ingredients")
+        if ingredients is not None:
+            meal_log.ingredients = ingredients
+            
+            computed = _compute_macros_from_ingredients(ingredients)
+            meal_log.calories = computed["calories"]
+            meal_log.protein = computed["protein"]
+            meal_log.carbohydrates = computed["carbohydrates"]
+            meal_log.fat = computed["fat"]
+
+        if "servings" in request.data:
+            meal_log.servings = float(request.data["servings"])
+        if "meal_name" in request.data:
+            meal_log.meal_name = request.data["meal_name"]
+        if "description" in request.data:
+            meal_log.description = request.data["description"]
+
+        meal_log.save()
+        return Response(MealLogSerializer(meal_log).data, status=status.HTTP_200_OK)
+    
+
+class MealLogViewSet(viewsets.ModelViewSet):
+    queryset = MealLog.objects.all()
+    serializer_class = MealLogSerializer
+
+   
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)

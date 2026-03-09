@@ -27,6 +27,7 @@ class MealLogSerializer(serializers.ModelSerializer):
             "carbohydrates",
             "fat",
             "created_at",
+            "date_logged",
         ]
 
 
@@ -35,3 +36,4 @@ class MealLogCreateSerializer(serializers.Serializer):
     description = serializers.CharField(required=False, allow_blank=True, default="")
     servings = serializers.FloatField(required=False, default=1, min_value=0.1)
     ingredients = MealLogIngredientSerializer(many=True, required=False, default=list)
+    date_logged = serializers.DateField(required=False)
