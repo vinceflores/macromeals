@@ -5,12 +5,7 @@ from rest_framework.permissions import IsAuthenticated  # ✅ require login for 
 from requests import RequestException
 
 from .models import Recipe, Ingredient, RecipeIngredient
-from .serializers import (
-    RecipeCreateSerializer,
-    RecipeListSerializer,
-    RecipeDetailSerializer,
-    RecipeUpdateSerializer,
-)
+from .serializers import RecipeCreateSerializer, RecipeListSerializer, RecipeDetailSerializer
 from app.usda import fdc_search
 
 # Sprint 1 placeholder macro DB (per 100g)
@@ -122,49 +117,6 @@ class RecipeDetailView(APIView):
 
         recipe.macros = compute_macros(recipe)
         return Response(RecipeDetailSerializer(recipe).data)
-
-    def put(self, request, recipe_id: int):
-        user = request.user
-        recipe = (
-            Recipe.objects.filter(user=user, id=recipe_id)
-            .prefetch_related("recipe_ingredients__ingredient")
-            .first()
-        )
-        if not recipe:
-            return Response({"detail": "Not found"}, status=404)
-
-        serializer = RecipeUpdateSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        data = serializer.validated_data
-        recipe.name = data["name"]
-        recipe.description = data.get("description", "")
-        recipe.save(update_fields=["name", "description"])
-
-        # Keep updates simple: replace the full ingredient list.
-        recipe.recipe_ingredients.all().delete()
-        for item in data["ingredients"]:
-            ing_name = item["name"].strip().lower()
-            ing, _ = Ingredient.objects.get_or_create(name=ing_name)
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ing,
-                quantity=float(item["quantity"]),
-                unit=item.get("unit", "g"),
-                calories_per_100g=float(item.get("calories_per_100g", 0)),
-                protein_per_100g=float(item.get("protein_per_100g", 0)),
-                carbs_per_100g=float(item.get("carbs_per_100g", 0)),
-                fat_per_100g=float(item.get("fat_per_100g", 0)),
-            )
-
-        recipe = (
-            Recipe.objects.filter(user=user, id=recipe_id)
-            .prefetch_related("recipe_ingredients__ingredient")
-            .first()
-        )
-        recipe.macros = compute_macros(recipe)
-        return Response(RecipeDetailSerializer(recipe).data, status=status.HTTP_200_OK)
 
 
 def _extract_macro(food: dict, nutrient_number: str, nutrient_name: str):

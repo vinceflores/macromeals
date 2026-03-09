@@ -20,7 +20,6 @@ export function meta(_: Route.MetaArgs) {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
-  console.log("Fetching from:", process.env.SERVER_URL)
   if (session.data.access) {
     try {
       const res = await Fetch(
@@ -60,13 +59,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
         >
           Daily Progress
-        </Link>
-
-        <Link
-          to="/analytics/logging?mode=recipe"
-          className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
-        >
-          Meal Logging
         </Link>
       </AppHeader>
 
