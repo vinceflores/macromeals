@@ -10,7 +10,11 @@ export default [
     index("routes/home.tsx"),
     route("recipes", "routes/recipes.tsx"),
     route("recipes/:id", "routes/recipe-detail.tsx"),
+<<<<<<< HEAD
     route("edit/:kind/:id", "routes/edit-item.tsx"),
+=======
+    route("calendar", "routes/calendar.tsx"),
+>>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
     route("analytics/macros", "routes/analytics/macros.tsx"),
     route("analytics/logging", "routes/analytics/logging.tsx"),
   ]),

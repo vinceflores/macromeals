@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Link, data, redirect, useActionData, useLoaderData, useNavigation, useSearchParams } from "react-router"
+=======
+import { data, redirect, useActionData, useLoaderData, useNavigation } from "react-router"
+>>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
 import { useRef, useState } from "react"
 
 import AppHeader from "components/app-header"
@@ -27,6 +31,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!session.data.access) return redirect("/auth/login")
 
   try {
+<<<<<<< HEAD
     const profileRes = await Fetch(
       new Request(`${process.env.SERVER_URL}/api/accounts/profile/`),
       session,
@@ -34,13 +39,22 @@ export async function loader({ request }: Route.LoaderArgs) {
     const profile = await profileRes.json()
 
     const recipesRes = await Fetch(
+=======
+    // Important: use authenticated server fetch so JWT is attached.
+    const res = await Fetch(
+>>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
       new Request(`${process.env.SERVER_URL}/recipe/`, {
         headers: { "Content-Type": "application/json" },
       }),
       session,
     )
+<<<<<<< HEAD
     const recipes = (await recipesRes.json()) as RecipeListItem[]
     return data({ profile, recipes, loadError: undefined })
+=======
+    const recipes = (await res.json()) as RecipeListItem[]
+    return data({ recipes, loadError: undefined })
+>>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load recipes from backend."
     return data(
@@ -111,6 +125,10 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   try {
+<<<<<<< HEAD
+=======
+    // Important: create requests must also include JWT; otherwise DRF returns 401.
+>>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
     const res = await Fetch(
       new Request(`${process.env.SERVER_URL}/recipe/`, {
         method: "POST",
@@ -126,7 +144,18 @@ export async function action({ request }: Route.ActionArgs) {
     )
 
     if (!res.ok) {
+<<<<<<< HEAD
       return data<ActionData>({ error: `HTTP ${res.status}` }, { status: 400 })
+=======
+      let message = `HTTP ${res.status}`
+      try {
+        const body = await res.json()
+        message = body?.detail ?? body?.errors ?? message
+      } catch {
+        // Keep default message when response body is not JSON.
+      }
+      return data<ActionData>({ error: String(message) }, { status: 400 })
+>>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
     }
 
     return data<ActionData>({ success: "Recipe created successfully." })
