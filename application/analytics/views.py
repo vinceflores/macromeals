@@ -22,19 +22,18 @@ class CurrentDayProgressView(APIView):
         fields = [ 'calories','carbohydrates', 'fat', 'protein']
         current = np.round(np.sum(macros_np,axis=0), 2)
         Totals = namedtuple('Totals', fields)
-        totals = Totals(*current)
-
-        # print(totals)
+        if macros_np.size == 0:
+            totals = Totals(0, 0, 0, 0)
+        else:
+            current = np.round(np.sum(macros_np, axis=0), 2)
+            totals = Totals(*current.tolist())
+        
         return Response(
             {   
              "current": {
-                # "calories": 1000,
                 "calories": totals.calories ,
-                # "fat": 10.12,
                 "fat": totals.fat,
                 "protein": totals.protein,
-                # "protein": 67.8,
-                # "carbohydrates": 50.5,
                 "carbohydrates": totals.carbohydrates,
                 "water": 1000
                 },
