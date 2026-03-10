@@ -1,19 +1,23 @@
 import { redirect, type Session } from "react-router";
-import { destroySession } from "~/sessions.server";
+import { commitSession, destroySession } from "~/sessions.server";
 
 export async function Fetch(request: Request, session: Session) {
-  const accessToken = session.get("access");
-  const refreshToken = session.get("refresh");
-  const initialRequest = request.clone();
-
-  const server_url = process.env.SERVER_URL;
-  let response = await fetch(request, {
-    headers: {
+  const accessToken = await session.get("access");
+  const refreshToken = await session.get("refresh");
+  const body = request.method !== "GET" ? await request.text() : undefined;
+  
+  let headers = {
       ...Object.fromEntries(request.headers),
       Authorization: `Bearer ${accessToken}`,
-    },
+      // "Content-Type": "application/json"
+  }
+  const server_url = process.env.SERVER_URL;
+  let response = await fetch(request.url, {
+    method: request.method,
+    headers: headers,
+    body
   });
-
+  
   if (response.status !== 401) {
     return response;
   }
@@ -35,10 +39,28 @@ export async function Fetch(request: Request, session: Session) {
   const data = await refreshResponse.json();
   const newAccessToken = data.access;
 
-  return fetch(initialRequest, {
+  session.set("access", newAccessToken)
+  // await commitSession(session)
+
+  // return fetch(initialRequest, {
+  //   headers: {
+  //     ...Object.fromEntries(initialRequest.headers),
+  //     Authorization: `Bearer ${newAccessToken}`,
+  //   },
+  // });
+  const retryResponse = await fetch(request.url, {
+    method: request.method,
     headers: {
-      ...Object.fromEntries(initialRequest.headers),
+      ...Object.fromEntries(request.headers),
       Authorization: `Bearer ${newAccessToken}`,
+      // "Content-Type": "application/json"
     },
+    body
   });
+
+  // Attach the updated session cookie to the response
+  const newResponse = new Response(retryResponse.body, retryResponse);
+  newResponse.headers.append("Set-Cookie", await commitSession(session));
+
+  return newResponse;
 }
