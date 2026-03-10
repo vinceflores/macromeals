@@ -7,6 +7,7 @@ import { redirect } from "react-router";
 import { Fetch } from "~/lib/auth.server";
 import { Button } from "~/components/ui/button";
 import AppHeader from "../../components/app-header";
+import { WaterLogForm } from "components/water-log-form";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -69,13 +70,16 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </Link>
       </AppHeader>
 
-      <main className="mx-auto w-full max-w-6xl p-6">
+      <main className="mx-auto w-full space-y-4 max-w-6xl p-6">
         <div className="space-y-4">
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
             Logged in as: {loaderData.email}
           </p>
           <Button>Click me</Button>
+        </div>
+        <div className="py-2">
+          <WaterLogForm />
         </div>
       </main>
     </div>

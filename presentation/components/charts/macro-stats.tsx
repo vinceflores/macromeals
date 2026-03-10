@@ -103,7 +103,7 @@ export function CaloriesStat(props: ProgressStatProps) {
                                                     y={viewBox.cy}
                                                     className="fill-foreground text-4xl font-bold"
                                                 >
-                                                    {data.current}
+                                                    {data.goal > data.current ? data.current : data.current - data.goal}
                                                 </tspan>
                                                 <tspan
                                                     x={viewBox.cx}
@@ -123,7 +123,8 @@ export function CaloriesStat(props: ProgressStatProps) {
             </CardContent>
             <CardFooter className="flex-col gap-2 text-sm">
                 <div className="flex items-center gap-2 leading-none font-medium">
-                    Out of  {data.goal} {data.unit}
+                    {data.goal > data.current ? "Out of" : "Over"}   {data.goal} {data.unit}
+
                 </div>
             </CardFooter>
         </Card>
@@ -175,7 +176,6 @@ export function WaterStat(props: WaterStatProps) {
                             <LabelList
                                 dataKey="water"
                                 position="center"
-
                                 fill="#000"
                                 fontSize={14}
                                 formatter={(value: number) => `${value} ml`}
@@ -187,7 +187,6 @@ export function WaterStat(props: WaterStatProps) {
         </Card>
     )
 }
-
 
 type Goal = {
     current: number
@@ -209,9 +208,28 @@ export function MacroStats(props: MacroStatsProps) {
         }
     } satisfies ChartConfig
     const chartData = [
-        { label: "carb", ...props.data.carbs, unit: "g", fill: "var(--chart-2)" },
-        { label: "fat", ...props.data.fat, unit: "g", fill: "var(--chart-2)" },
-        { label: "protein", ...props.data.protein, unit: "g", fill: "var(--chart-2)" },
+        {
+            label: "carb",
+            current: props.data.carbs.current,
+            current_norm: (props.data.carbs.current / props.data.carbs.goal) * 100,
+            goal: props.data.carbs.goal, unit: "g", fill: "var(--chart-2)"
+        },
+        {
+            label: "fat",
+            current_norm: props.data.fat.current,
+            current: (props.data.fat.current / props.data.fat.goal) * 1100,
+            goal: props.data.fat.goal,
+            // ...props.data.fat,
+            unit: "g", fill: "var(--chart-2)"
+        },
+        {
+            label: "protein",
+            current: props.data.protein.current,
+            current_norm: (props.data.protein.current / props.data.fat.goal) * 100,
+            goal: props.data.protein.goal,
+            // ...props.data.protein,
+            unit: "g", fill: "var(--chart-2)"
+        },
     ]
     return (
         <Card className=" col-span-full">
@@ -220,7 +238,11 @@ export function MacroStats(props: MacroStatsProps) {
             </CardHeader>
             <CardContent className="">
                 <ChartContainer className="h-[150px] w-full" config={chartConfig}>
-                    <BarChart accessibilityLayer data={chartData} margin={{ top: 20 }} layout="vertical">
+                    <BarChart
+                        layout="vertical"
+                        barCategoryGap="40%" 
+                        barSize={24}
+                        accessibilityLayer data={chartData} margin={{ top: 20 }} layout="vertical">
                         <CartesianGrid vertical={false} />
                         <YAxis
                             dataKey={"label"}
@@ -241,24 +263,24 @@ export function MacroStats(props: MacroStatsProps) {
                             axisLine={false}
                             className="h-full"
                             tickFormatter={(value: number) => `${value}g`}
+
                         />
                         <XAxis
-                            dataKey="goal"
+                            dataKey="current_norm"
                             type="number"
                             hide
                             tickLine={false}
                             tickMargin={10}
                             axisLine={false}
-
+                            domain={[0, 100]}
                         />
-                        <Bar yAxisId={"left"} dataKey="current" fill="" radius={8} >
+                        <Bar yAxisId={"left"} dataKey="current_norm" fill="" radius={8} >
                             <LabelList
-                                dataKey="current"
-                                position="right"
-                                // className="w-[50px]"
+                                dataKey="current_norm"
+                                position="top"
                                 fill="var(--foreground)"
                                 fontSize={12}
-                                formatter={(value: number) => `${value}g`}
+                                formatter={(value: number) => `${value.toFixed(2)}g`}
                             />
                         </Bar>
                     </BarChart>

@@ -39,23 +39,7 @@ export async function loader({ request }: Route.LoaderArgs) {
         console.log(error)
         return data({ error: error })
     }
-    // const macros: MacroGoals = {
-    //     current: {
-    //         calories: 1000,
-    //         fat: 10.12,
-    //         protein: 67.8,
-    //         carbohydrates: 50.5,
-    //         water: 1000
-    //     },
-    //     goal: {
-    //         calories: 2000,
-    //         fat: 2000 * 0.25, // 25%
-    //         protein: 2000 * .30,// 30%
-    //         carbohydrates: 2000 * .45, // 46%
-    //         water: 2500 // 2500ml
-    //     }
-    // }
-    // return data({ ...macros, error: undefined })
+    
 }
 
 export default function CurrentDayMacros() {
@@ -97,7 +81,7 @@ export default function CurrentDayMacros() {
                                 current: data.current.calories,
                                 goal: data.goal.calories,
                                 unit: "kcal",
-                                fill: "var(--chart-2)"
+                                fill: data.goal.calories > data.current.calories ? "var(--chart-2)" : "var(--chart-1)"
                             }
                         ]
                     }

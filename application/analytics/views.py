@@ -7,12 +7,15 @@ from meal_logs.models import MealLog
 from django.utils   import timezone
 import numpy as np
 from collections import namedtuple
+from meal_logs.services.water_log import WaterLogService
 
 from meal_logs.serializers import MealLogSerializer
 # Create your views here.
 
 class CurrentDayProgressView(APIView): 
     permission_classes = [IsAuthenticated]
+    water_log_service = WaterLogService
+
     def get(self, request): 
         user = self.request.user
         # created_at
@@ -27,6 +30,8 @@ class CurrentDayProgressView(APIView):
         else:
             current = np.round(np.sum(macros_np, axis=0), 2)
             totals = Totals(*current.tolist())
+
+        water = self.water_log_service.getCurrentDay(user=user)
         
         return Response(
             {   
@@ -35,7 +40,7 @@ class CurrentDayProgressView(APIView):
                 "fat": totals.fat,
                 "protein": totals.protein,
                 "carbohydrates": totals.carbohydrates,
-                "water": 1000
+                "water": water
                 },
              "goal": {
                 "calories": user.daily_calorie_goal,

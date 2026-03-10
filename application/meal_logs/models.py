@@ -16,3 +16,10 @@ class MealLog(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        
+class WaterLog(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="water_logs") 
+    water = models.FloatField(default=0) # in ml
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ["-created_at"]

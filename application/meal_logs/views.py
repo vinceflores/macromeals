@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from .serializers import WaterLogSerializer
 from .models import MealLog
 from .serializers import MealLogCreateSerializer, MealLogSerializer
 from django.utils   import timezone
@@ -89,3 +89,15 @@ class MealLogDetailView(APIView):
         meal_log.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class WaterLogView(APIView):
+    permission_classes =[IsAuthenticated]
+    serializer_class = WaterLogSerializer
+    def get(self):
+        pass
+        
+    def post(self, request):
+        serializer = self.serializer_class  (data = request.data)
+        if not serializer.is_valid():
+            return Response( {"errors": serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+        water = serializer.save(user = request.user)
+        return Response(status=status.HTTP_201_CREATED)
