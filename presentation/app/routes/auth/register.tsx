@@ -1,7 +1,7 @@
 import { data, redirect } from "react-router";
-import { getSession, commitSession } from "../sessions.server";
+import { getSession, commitSession } from "../../sessions.server";
 import type { Route } from "./+types/register";
-import RegisterForm from "../../components/register-form";
+import RegisterForm from "../../../components/register-form";
 
 //prevent users who are already logged in from seeing the register page
 export async function loader({ request }: Route.LoaderArgs) {

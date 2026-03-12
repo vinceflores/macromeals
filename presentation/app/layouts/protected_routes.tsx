@@ -49,6 +49,12 @@ export default function ProtectedRoutesLayout({ loaderData }: Route.ComponentPro
                 >
                     Daily Progress
                 </Link>
+                <Link
+                    to="/analytics/logging?mode=recipe"
+                    className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+                >
+                    Meal Logging
+                </Link>
             </AppHeader>
             < Outlet />
         </>

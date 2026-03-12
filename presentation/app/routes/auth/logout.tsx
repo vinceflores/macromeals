@@ -2,7 +2,7 @@ import { Form, Link, redirect } from "react-router";
 import {
     getSession,
     destroySession,
-} from "../sessions.server";
+} from "../../sessions.server";
 import type { Route } from "./+types/logout";
 
 export async function action({
