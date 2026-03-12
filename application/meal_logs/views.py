@@ -2,10 +2,10 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from .serializers import WaterLogSerializer
 from .models import MealLog
 from .serializers import MealLogCreateSerializer, MealLogSerializer
-
+from django.utils   import timezone
 
 def _compute_macros_from_ingredients(ingredients):
     totals = {"calories": 0.0, "protein": 0.0, "carbohydrates": 0.0, "fat": 0.0}
@@ -94,6 +94,7 @@ class MealLogDetailView(APIView):
             return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
         meal_log.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
     
     def patch(self, request, log_id: int):
         meal_log = MealLog.objects.filter(id=log_id, user=request.user).first()
@@ -128,3 +129,18 @@ class MealLogViewSet(viewsets.ModelViewSet):
    
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class WaterLogView(APIView):
+    permission_classes =[IsAuthenticated]
+    serializer_class = WaterLogSerializer
+    def get(self):
+        pass
+        
+    def post(self, request):
+        serializer = self.serializer_class  (data = request.data)
+        if not serializer.is_valid():
+            return Response( {"errors": serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+        water = serializer.save(user = request.user)
+        return Response(status=status.HTTP_201_CREATED)
+

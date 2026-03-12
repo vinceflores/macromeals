@@ -1,7 +1,8 @@
 __pycache__/
+*__pycache__/
 *.py[cod]
 *$py.class
-
+migrations/
 .env
 db.sqlite3
 .env.local
@@ -11,3 +12,5 @@ node_modules/
 dist/
 build/__pycache__/
 *.pyc
+application/app/__pycache__/urls.cpython-312.pyc
+application/app/__pycache__/urls.cpython-312.pyc

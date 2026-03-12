@@ -47,7 +47,15 @@ class MealLog(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
-        ordering = ["-date_logged", "-created_at"]
 
+        ordering = ["-date_logged", "-created_at"]
     def __str__(self):
         return f"{self.user.email} - {self.get_meal_name_display()} ({self.date_logged})"
+
+        
+class WaterLog(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="water_logs") 
+    water = models.FloatField(default=0) # in ml
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ["-created_at"]

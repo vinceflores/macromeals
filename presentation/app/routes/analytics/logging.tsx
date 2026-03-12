@@ -9,6 +9,7 @@ import { Label } from "~/components/ui/label"
 import { Fetch } from "~/lib/auth.server"
 import { searchFood, type FoodSearchResult, type RecipeListItem } from "~/lib/recipes-api"
 import { getSession } from "~/sessions.server"
+import { WaterLogForm } from "components/water-log-form"
 
 type MealLogIngredient = {
   name: string
@@ -389,7 +390,7 @@ export default function MealLoggingPage() {
   return (
 
     <div className="flex flex-col min-h-screen">
-      <AppHeader profile={profile} />
+      {/* <AppHeader profile={profile} /> */}
 
       <main className="mx-auto w-full max-w-5xl p-6 space-y-4">
         <h1 className="text-3xl font-semibold">Meal Logging</h1>
@@ -596,6 +597,8 @@ export default function MealLoggingPage() {
 
         {actionData?.error ? <p className="text-sm text-red-600">{actionData.error}</p> : null}
         {actionData?.success ? <p className="text-sm text-green-600">{actionData.success}</p> : null}
+
+        <WaterLogForm />
 
         <Card>
           <CardHeader>
