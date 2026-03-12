@@ -263,15 +263,15 @@ export default function RecipesRoute() {
       prev.map((row) =>
         row.id === rowId
           ? {
-              ...row,
-              name: food.description ?? "",
-              macros: {
-                calories: food.macros.calories,
-                protein: food.macros.protein,
-                carbs: food.macros.carbs,
-                fat: food.macros.fat,
-              },
-            }
+            ...row,
+            name: food.description ?? "",
+            macros: {
+              calories: food.macros.calories,
+              protein: food.macros.protein,
+              carbs: food.macros.carbs,
+              fat: food.macros.fat,
+            },
+          }
           : row,
       ),
     )

@@ -31,6 +31,13 @@ Configure permissions for `entrypoint.sh`
 chmod +x entrypoint.sh
 ```
 
+## FatSecret ApI Setup
+Add these to your `.env` file. They can be found at [REST API OAuth 1.0 Credentials](https://platform.fatsecret.com/my-account/api-key)
+```
+CUSTOMER_KEY=<key here> 
+CUSTOMER_SECRET=<key here>
+```
+
 Run
 > Make sure you have docker running
 ```
