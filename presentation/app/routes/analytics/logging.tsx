@@ -348,7 +348,7 @@ export default function MealLoggingPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <AppHeader profile={profile} />
+      {/* <AppHeader profile={profile} /> */}
 
       <main className="mx-auto w-full max-w-5xl p-6 space-y-4">
         <h1 className="text-3xl font-semibold">Meal Logging</h1>

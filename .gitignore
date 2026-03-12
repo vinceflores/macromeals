@@ -1,3 +1,4 @@
+__pycache__/
 *__pycache__/
 *.py[cod]
 *$py.class
@@ -11,3 +12,5 @@ node_modules/
 dist/
 build/__pycache__/
 *.pyc
+application/app/__pycache__/urls.cpython-312.pyc
+application/app/__pycache__/urls.cpython-312.pyc
