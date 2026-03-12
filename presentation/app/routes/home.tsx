@@ -3,10 +3,7 @@ import type { Route } from "./+types/home";
 import { getSession } from "~/sessions.server";
 import { Fetch } from "~/lib/auth.server";
 import { Button } from "~/components/ui/button";
-<<<<<<< HEAD
 import AppHeader from "../../components/app-header";
-=======
->>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -20,24 +17,9 @@ export function meta(_: Route.MetaArgs) {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
-<<<<<<< HEAD
-  console.log("Fetching from:", process.env.SERVER_URL)
-  if (session.data.access) {
-    try {
-      const res = await Fetch(
-        new Request(`${process.env.SERVER_URL}/api/accounts/profile/`),
-        session,
-      );
-      const me = await res.json();
-      return me;
-    } catch (error) {
-      throw error;
-    }
-=======
 
   if (!session.data.access) {
     return redirect("/auth/login");
->>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
   }
 
   const res = await Fetch(
@@ -55,8 +37,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     "User";
 
   return (
-<<<<<<< HEAD
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppHeader
         profile={{
           email: loaderData.email,
@@ -73,6 +54,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </Link>
 
         <Link
+          to="/calendar"
+          className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+        >
+          Open Calendar
+        </Link>
+
+        <Link
           to="/analytics/macros"
           className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
         >
@@ -86,39 +74,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           Meal Logging
         </Link>
       </AppHeader>
-=======
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <div className="text-xl font-bold tracking-tight text-primary">
-            MacroMeals
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link
-              to="/recipes"
-              className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
-            >
-              Go to Recipes
-            </Link>
-
-            <Link
-              to="/calendar"
-              className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
-            >
-              Open Calendar
-            </Link>
-
-            <Link
-              to="/analytics/macros"
-              className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
-            >
-              Daily Progress
-            </Link>
-          </div>
-        </div>
-      </header>
->>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
 
       <main className="mx-auto w-full max-w-6xl p-6">
         <div className="space-y-4">
@@ -137,6 +92,10 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
             <Link to="/analytics/macros">
               <Button variant="outline">Daily Progress</Button>
+            </Link>
+
+            <Link to="/analytics/logging?mode=recipe">
+              <Button variant="outline">Meal Logging</Button>
             </Link>
           </div>
         </div>

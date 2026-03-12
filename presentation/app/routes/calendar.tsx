@@ -1,9 +1,44 @@
-import { useMemo, useState } from "react";
-import { Link, redirect } from "react-router";
+import { data, Link, redirect, useLoaderData, useSearchParams } from "react-router";
 import type { Route } from "./+types/calendar";
 import { getSession } from "~/sessions.server";
+import { Fetch } from "~/lib/auth.server";
 
 type ViewMode = "month" | "week" | "day";
+
+type MealLogIngredient = {
+  name: string;
+  quantity: number;
+  unit: string;
+};
+
+type MealLog = {
+  id: number;
+  meal_name: string;
+  description: string;
+  ingredients: MealLogIngredient[];
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fat: number;
+  created_at: string;
+  date_logged?: string;
+};
+
+function formatDateKey(date: Date) {
+  return date.toISOString().split("T")[0];
+}
+
+function parseDate(dateStr: string) {
+  return new Date(`${dateStr}T00:00:00`);
+}
+
+function sameDay(a: Date, b: Date) {
+  return formatDateKey(a) === formatDateKey(b);
+}
+
+function getLogDate(log: MealLog) {
+  return (log.date_logged || log.created_at || "").split("T")[0];
+}
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -22,41 +57,96 @@ export async function loader({ request }: Route.LoaderArgs) {
     return redirect("/auth/login");
   }
 
-  return null;
+  const url = new URL(request.url);
+  const currentDate = url.searchParams.get("date") || formatDateKey(new Date());
+
+  try {
+    const [allLogsRes, selectedDayLogsRes] = await Promise.all([
+      Fetch(new Request(`${process.env.SERVER_URL}/api/logging/`), session),
+      Fetch(
+        new Request(`${process.env.SERVER_URL}/api/logging/?date=${currentDate}`),
+        session,
+      ),
+    ]);
+
+    const allLogsBody = await allLogsRes.json();
+    const selectedDayLogsBody = await selectedDayLogsRes.json();
+
+    return data({
+      allLogs: (allLogsBody.results ?? []) as MealLog[],
+      selectedDayLogs: (selectedDayLogsBody.results ?? []) as MealLog[],
+      currentDate,
+      error: undefined as string | undefined,
+    });
+  } catch (error) {
+    return data({
+      allLogs: [] as MealLog[],
+      selectedDayLogs: [] as MealLog[],
+      currentDate,
+      error: String(error),
+    });
+  }
 }
 
 export default function CalendarPage() {
-  const [view, setView] = useState<ViewMode>("month");
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const { allLogs, selectedDayLogs, currentDate, error } =
+    useLoaderData<typeof loader>();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const formattedHeader = useMemo(() => {
-    return selectedDate.toLocaleDateString("en-CA", {
-      weekday: view === "day" ? "long" : undefined,
-      year: "numeric",
-      month: "long",
-      day: view === "day" ? "numeric" : undefined,
-    });
-  }, [selectedDate, view]);
+  const selectedDate = parseDate(currentDate);
+  const view = (searchParams.get("view") as ViewMode) || "month";
+
+  const logDates = new Set(allLogs.map((log) => getLogDate(log)));
+
+  const totals = selectedDayLogs.reduce(
+    (acc, log) => {
+      acc.calories += Number(log.calories || 0);
+      acc.protein += Number(log.protein || 0);
+      acc.carbohydrates += Number(log.carbohydrates || 0);
+      acc.fat += Number(log.fat || 0);
+      return acc;
+    },
+    { calories: 0, protein: 0, carbohydrates: 0, fat: 0 },
+  );
+
+  function setView(nextView: ViewMode) {
+    const next = new URLSearchParams(searchParams);
+    next.set("view", nextView);
+    setSearchParams(next, { replace: true });
+  }
+
+  function setSelectedDate(date: Date) {
+    const next = new URLSearchParams(searchParams);
+    next.set("date", formatDateKey(date));
+    setSearchParams(next, { replace: true });
+  }
 
   function goToToday() {
     setSelectedDate(new Date());
   }
 
   function goToPrevious() {
-    const next = new Date(selectedDate);
-    if (view === "month") next.setMonth(next.getMonth() - 1);
-    if (view === "week") next.setDate(next.getDate() - 7);
-    if (view === "day") next.setDate(next.getDate() - 1);
-    setSelectedDate(next);
+    const nextDate = new Date(selectedDate);
+    if (view === "month") nextDate.setMonth(nextDate.getMonth() - 1);
+    if (view === "week") nextDate.setDate(nextDate.getDate() - 7);
+    if (view === "day") nextDate.setDate(nextDate.getDate() - 1);
+    setSelectedDate(nextDate);
   }
 
   function goToNext() {
-    const next = new Date(selectedDate);
-    if (view === "month") next.setMonth(next.getMonth() + 1);
-    if (view === "week") next.setDate(next.getDate() + 7);
-    if (view === "day") next.setDate(next.getDate() + 1);
-    setSelectedDate(next);
+    const nextDate = new Date(selectedDate);
+    if (view === "month") nextDate.setMonth(nextDate.getMonth() + 1);
+    if (view === "week") nextDate.setDate(nextDate.getDate() + 7);
+    if (view === "day") nextDate.setDate(nextDate.getDate() + 1);
+    setSelectedDate(nextDate);
   }
+
+  const headerLabel = selectedDate.toLocaleDateString("en-CA", {
+    weekday: view === "day" ? "long" : undefined,
+    year: "numeric",
+    month: "long",
+    day: view === "day" ? "numeric" : undefined,
+  });
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -65,7 +155,7 @@ export default function CalendarPage() {
           <div>
             <h1 className="text-2xl font-bold">Meal Calendar</h1>
             <p className="text-sm text-muted-foreground">
-              Skeleton view for month, week, and day tracking.
+              View your logged meals by month, week, or day.
             </p>
           </div>
 
@@ -101,7 +191,7 @@ export default function CalendarPage() {
             </button>
           </div>
 
-          <h2 className="text-lg font-semibold">{formattedHeader}</h2>
+          <h2 className="text-lg font-semibold">{headerLabel}</h2>
 
           <div className="flex w-fit rounded-xl border p-1">
             <ViewTab current={view} value="month" onChange={setView} />
@@ -110,11 +200,18 @@ export default function CalendarPage() {
           </div>
         </section>
 
+        {error ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+            {error}
+          </div>
+        ) : null}
+
         <main className="rounded-2xl border bg-white p-5 shadow-sm">
           {view === "month" && (
             <MonthView
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
+              logDates={logDates}
             />
           )}
 
@@ -122,10 +219,15 @@ export default function CalendarPage() {
             <WeekSection
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
+              logDates={logDates}
+              logs={selectedDayLogs}
+              totals={totals}
             />
           )}
 
-          {view === "day" && <DayView selectedDate={selectedDate} />}
+          {view === "day" && (
+            <DayView selectedDate={selectedDate} logs={selectedDayLogs} totals={totals} />
+          )}
         </main>
       </div>
     </div>
@@ -158,9 +260,11 @@ function ViewTab({
 function MonthView({
   selectedDate,
   onSelectDate,
+  logDates,
 }: {
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
+  logDates: Set<string>;
 }) {
   const year = selectedDate.getFullYear();
   const month = selectedDate.getMonth();
@@ -170,11 +274,7 @@ function MonthView({
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const cells: Array<Date | null> = [];
-
-  for (let i = 0; i < startDay; i++) {
-    cells.push(null);
-  }
-
+  for (let i = 0; i < startDay; i++) cells.push(null);
   for (let day = 1; day <= daysInMonth; day++) {
     cells.push(new Date(year, month, day));
   }
@@ -196,8 +296,8 @@ function MonthView({
 
       <div className="grid grid-cols-7 gap-2">
         {cells.map((date, index) => {
-          const isSelected =
-            date && date.toDateString() === selectedDate.toDateString();
+          const isSelected = date ? sameDay(date, selectedDate) : false;
+          const hasLogs = date ? logDates.has(formatDateKey(date)) : false;
 
           return (
             <button
@@ -213,8 +313,15 @@ function MonthView({
             >
               {date ? (
                 <div className="flex h-full flex-col justify-between">
-                  <span className="text-sm font-medium">{date.getDate()}</span>
-                  <span className="text-xs text-gray-400">Meals go here</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{date.getDate()}</span>
+                    {hasLogs ? (
+                      <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                    ) : null}
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {hasLogs ? "Meals logged" : "No meals"}
+                  </span>
                 </div>
               ) : null}
             </button>
@@ -228,14 +335,29 @@ function MonthView({
 function WeekSection({
   selectedDate,
   onSelectDate,
+  logDates,
+  logs,
+  totals,
 }: {
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
+  logDates: Set<string>;
+  logs: MealLog[];
+  totals: {
+    calories: number;
+    protein: number;
+    carbohydrates: number;
+    fat: number;
+  };
 }) {
   return (
     <div className="space-y-6">
-      <WeekView selectedDate={selectedDate} onSelectDate={onSelectDate} />
-      <DayView selectedDate={selectedDate} />
+      <WeekView
+        selectedDate={selectedDate}
+        onSelectDate={onSelectDate}
+        logDates={logDates}
+      />
+      <DayView selectedDate={selectedDate} logs={logs} totals={totals} />
     </div>
   );
 }
@@ -243,9 +365,11 @@ function WeekSection({
 function WeekView({
   selectedDate,
   onSelectDate,
+  logDates,
 }: {
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
+  logDates: Set<string>;
 }) {
   const start = new Date(selectedDate);
   start.setDate(selectedDate.getDate() - selectedDate.getDay());
@@ -259,7 +383,8 @@ function WeekView({
   return (
     <div className="grid gap-4 md:grid-cols-7">
       {days.map((day) => {
-        const isSelected = day.toDateString() === selectedDate.toDateString();
+        const isSelected = sameDay(day, selectedDate);
+        const hasLogs = logDates.has(formatDateKey(day));
 
         return (
           <button
@@ -269,11 +394,17 @@ function WeekView({
               isSelected ? "border-black bg-gray-100" : "hover:bg-gray-50"
             }`}
           >
-            <p className="text-sm font-semibold">
-              {day.toLocaleDateString("en-CA", { weekday: "short" })}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold">
+                {day.toLocaleDateString("en-CA", { weekday: "short" })}
+              </p>
+              {hasLogs ? <span className="h-2.5 w-2.5 rounded-full bg-green-500" /> : null}
+            </div>
+
             <p className="text-lg font-bold">{day.getDate()}</p>
-            <div className="mt-4 text-xs text-gray-400">Meals go here</div>
+            <div className="mt-4 text-xs text-gray-400">
+              {hasLogs ? "Meals logged" : "No meals"}
+            </div>
           </button>
         );
       })}
@@ -281,7 +412,25 @@ function WeekView({
   );
 }
 
-function DayView({ selectedDate }: { selectedDate: Date }) {
+function DayView({
+  selectedDate,
+  logs,
+  totals,
+}: {
+  selectedDate: Date;
+  logs: MealLog[];
+  totals: {
+    calories: number;
+    protein: number;
+    carbohydrates: number;
+    fat: number;
+  };
+}) {
+  const groupedLogs = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"].map((type) => ({
+    type,
+    logs: logs.filter((log) => log.meal_name === type),
+  }));
+
   return (
     <div className="space-y-4">
       <div className="rounded-xl border p-4">
@@ -294,27 +443,52 @@ function DayView({ selectedDate }: { selectedDate: Date }) {
           })}
         </h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Daily meals and totals will go here.
+          Meals logged for this day.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-xl border p-4">
           <h4 className="font-semibold">Meals</h4>
-          <div className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <div className="rounded-lg bg-gray-50 p-3">Breakfast placeholder</div>
-            <div className="rounded-lg bg-gray-50 p-3">Lunch placeholder</div>
-            <div className="rounded-lg bg-gray-50 p-3">Dinner placeholder</div>
+
+          <div className="mt-3 space-y-4">
+            {groupedLogs.map(({ type, logs: typeLogs }) => (
+              <div key={type} className="space-y-2">
+                <h5 className="border-b pb-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  {type}
+                </h5>
+
+                {typeLogs.length === 0 ? (
+                  <p className="text-xs italic text-muted-foreground">
+                    No {type.toLowerCase()} logged.
+                  </p>
+                ) : (
+                  typeLogs.map((log) => (
+                    <div key={log.id} className="rounded-lg bg-gray-50 p-3">
+                      <p className="font-medium">{log.calories} kcal</p>
+                      <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
+                        <span>P: {log.protein}g</span>
+                        <span>C: {log.carbohydrates}g</span>
+                        <span>F: {log.fat}g</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
         <div className="rounded-xl border p-4">
           <h4 className="font-semibold">Daily Totals</h4>
           <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-            <MetricCard label="Calories" value="0" />
-            <MetricCard label="Protein" value="0g" />
-            <MetricCard label="Carbs" value="0g" />
-            <MetricCard label="Fat" value="0g" />
+            <MetricCard label="Calories" value={String(Number(totals.calories.toFixed(2)))} />
+            <MetricCard label="Protein" value={`${Number(totals.protein.toFixed(2))}g`} />
+            <MetricCard
+              label="Carbs"
+              value={`${Number(totals.carbohydrates.toFixed(2))}g`}
+            />
+            <MetricCard label="Fat" value={`${Number(totals.fat.toFixed(2))}g`} />
           </div>
         </div>
       </div>

@@ -1,11 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-<<<<<<< HEAD
-from rest_framework.permissions import IsAuthenticated  # ✅ require login for recipes
-=======
 from rest_framework.permissions import IsAuthenticated
->>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
 from requests import RequestException
 
 from .models import Recipe, Ingredient, RecipeIngredient
@@ -51,14 +47,6 @@ def compute_macros(recipe: Recipe):
         total["fat"] += float(per100.get("fat", 0)) * factor
         total["carbs"] += float(per100.get("carbs", 0)) * factor
 
-<<<<<<< HEAD
-    # Round for nicer output
-    return {k: round(v, 2) for k, v in total.items()}
-
-
-class RecipeListCreateView(APIView):
-    permission_classes = [IsAuthenticated]  # ✅ must be logged in
-=======
     # Keep a stable API shape for frontend cards and detail pages.
     total = {k: round(v, 2) for k, v in total.items()}
     servings = max(int(recipe.servings or 1), 1)
@@ -69,7 +57,6 @@ class RecipeListCreateView(APIView):
 class RecipeListCreateView(APIView):
     # Recipes are user-specific, so API access requires authentication.
     permission_classes = [IsAuthenticated]
->>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
 
     def get(self, request):
         user = request.user
@@ -124,12 +111,8 @@ class RecipeListCreateView(APIView):
 
 
 class RecipeDetailView(APIView):
-<<<<<<< HEAD
-    permission_classes = [IsAuthenticated]  # ✅ must be logged in
-=======
     # Recipes are user-specific, so API access requires authentication.
     permission_classes = [IsAuthenticated]
->>>>>>> bc06e27 (Add calendar skeleton with month, week, and day views)
 
     def get(self, request, recipe_id: int):
         user = request.user
