@@ -23,7 +23,7 @@ export default function AppHeader({
   return (
     <header className="border-b bg-background">
       <div className="mx-auto flex h-16 max-w-6xl items-center px-6 justify-between">
-        <div className="font-bold text-xl tracking-tight text-primary">MacroMeals</div>
+        <Link to="/" className="font-bold text-xl tracking-tight text-primary">MacroMeals</Link>
 
         <div className="flex items-center space-x-4">
           {children}
