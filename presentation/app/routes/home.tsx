@@ -1,5 +1,7 @@
 
 import type { Route } from "./+types/home";
+import { getSession } from "~/sessions.server";
+import { Fetch } from "~/lib/auth.server";
 
 export function meta(_: Route.MetaArgs) {
   return [
