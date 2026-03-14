@@ -7,17 +7,23 @@ export type WaterLogFormProps = {
     action?: string
 }
 
-export function WaterLogForm(props: WaterLogFormProps) {
-    const fetcher = useFetcher()
+// Notice the '?' after currentDate to make it optional
+export default function WaterForm({ action, currentDate }: { action?: string, currentDate?: string }) {   
+    const fetcher = useFetcher();
+    
     return (
         <fetcher.Form
             className="space-y-3"
-            action={props.action || "/analytics/logging/water"} method="post">
-            <Label htmlFor="water"  > Log Water Intake (ml) </Label>
-            <div className="flex justify-center items-centerq">
-                <Input id="water" name="water" placeholder="1000" type="number" className="" />
-                <Button type="submit"> LOg </Button>
+            action={action || "/analytics/logging/water"} 
+            method="post"
+        >
+            <Label htmlFor="water"> Log Water Intake (ml) </Label>
+            {/* Added a check: if currentDate is missing, don't even render the input */}
+            <div className="flex justify-center items-center gap-2"> 
+                {currentDate && <input type="hidden" name="date" value={currentDate} />}
+                <Input id="water" name="water" placeholder="1000" type="number" />
+                <Button type="submit"> Log </Button>
             </div>
         </fetcher.Form>
-    )
+    );
 }

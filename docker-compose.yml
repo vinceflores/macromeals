@@ -21,8 +21,6 @@ services:
   backend:
     build:
       context: ./application
-    env_file:
-      - .env
     container_name: macromeals_backend
     entrypoint: /app/entrypoint.sh
     command: python application/manage.py runserver 0.0.0.0:8000

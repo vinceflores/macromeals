@@ -8,10 +8,11 @@ export async function action({ request }: Route.ActionArgs) {
         request.headers.get("Cookie")
     )
     const fd = await request.formData()
+    const date_logged = fd.get("date")
     const water = fd.get("water")
     const req = new Request(`${process.env.SERVER_URL}/api/logging/water/`, {
         method: "POST",
-        body: JSON.stringify({ water }),
+        body: JSON.stringify({ water, date_logged }),
         headers: {
             "Content-Type": "application/json"
         }

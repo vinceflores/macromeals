@@ -17,10 +17,15 @@ class CurrentDayProgressView(APIView):
     water_log_service = WaterLogService
 
     def get(self, request): 
+        date = request.query_params.get('date');
+
+        target_date = date if date else timezone.now().date()
+        
+        
         user = self.request.user
         # created_at
         today = timezone.now().date()
-        meals = MealLog.objects.filter(user=user, created_at__date=today)
+        meals = MealLog.objects.filter(user=user, date_logged = target_date)
         macros_np= np.array([m for m in meals.values_list( 'calories','carbohydrates', 'fat', 'protein')])
         fields = [ 'calories','carbohydrates', 'fat', 'protein']
         current = np.round(np.sum(macros_np,axis=0), 2)
@@ -31,7 +36,7 @@ class CurrentDayProgressView(APIView):
             current = np.round(np.sum(macros_np, axis=0), 2)
             totals = Totals(*current.tolist())
 
-        water = self.water_log_service.getCurrentDay(user=user)
+        water = self.water_log_service.getCurrentDay(user=user, date = target_date)
         
         return Response(
             {   
@@ -56,8 +61,11 @@ class CurrentDayLoggedMeals(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        today = timezone.now().date()
-        meal_log = MealLog.objects.filter( user=request.user, created_at__date=today).first()
-        if not meal_log:
-            return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(MealLogSerializer(meal_log).data, status=status.HTTP_200_OK) 
+        date = request.query_params.get('date')
+        target_date = date if date else timezone.now().date()
+
+
+        meal_log = MealLog.objects.filter( user=request.user, date_logged = target_date)
+        # if not meal_log:
+        #     return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(MealLogSerializer(meal_log).data, many = True, status=status.HTTP_200_OK) 

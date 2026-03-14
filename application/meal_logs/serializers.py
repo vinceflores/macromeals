@@ -40,6 +40,7 @@ class MealLogCreateSerializer(serializers.Serializer):
 
 class WaterLogSerializer(serializers.Serializer):
     water = serializers.FloatField(required=True)
+    date_logged = serializers.DateField(required = False)
     def create(self, validated_data):
         return WaterLog.objects.create(**validated_data)
 

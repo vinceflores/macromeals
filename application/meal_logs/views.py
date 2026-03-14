@@ -138,9 +138,11 @@ class WaterLogView(APIView):
         pass
         
     def post(self, request):
+
+        date_logged = request.data.get('date_logged') or timezone.now().date()
         serializer = self.serializer_class  (data = request.data)
         if not serializer.is_valid():
             return Response( {"errors": serializer.errors},status=status.HTTP_400_BAD_REQUEST)
-        water = serializer.save(user = request.user)
+        water = serializer.save(user = request.user, date_logged = date_logged)
         return Response(status=status.HTTP_201_CREATED)
 

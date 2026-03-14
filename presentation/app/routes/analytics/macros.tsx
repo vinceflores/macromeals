@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
 import type { ChartConfig } from "~/components/ui/chart"
 import { Fetch } from "~/lib/auth.server"
 import { getSession } from "~/sessions.server"
+import { useSearchParams } from "react-router"
 
 export type Macros = {
     calories: number,
@@ -24,9 +25,15 @@ export type MacroGoals = {
 export async function loader({ request }: Route.LoaderArgs) {
     const session = await getSession(request.headers.get("Cookie"));
     if (!session.data.access) return redirect("/auth/login");
+
+    //get date from url - default is today
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date") || new Date().toISOString().split('T')[0];
+
+
     try {
         const res = await Fetch(
-            new Request(`${process.env.SERVER_URL}/api/analytics/progress/`, {
+            new Request(`${process.env.SERVER_URL}/api/analytics/progress/?date=${date}`, {
                 headers: {
                     "Content-Type": "application/json"
                 }
@@ -34,7 +41,7 @@ export async function loader({ request }: Route.LoaderArgs) {
             session,
         );
         const macros = await res.json()
-        return data({ ...macros, error: undefined })
+        return data({ ...macros, currentDate: date, error: undefined })
     } catch (error) {
         console.log(error)
         return data({ error: error })
@@ -43,8 +50,37 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function CurrentDayMacros() {
-    const data = useLoaderData<typeof loader>()
+    const macrosResult = useLoaderData<typeof loader>()
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
+
+    if (macrosResult.error) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen w-full max-w-4xl space-y-3 mx-auto my-10">
+                <h1>An error Occurred</h1>
+                <Button variant={"link"} onClick={() => navigate(-1)}> <ArrowLeft className="h-3" /> Go back </Button>
+            </div>
+        )
+    }
+
+    const { currentDate } = macrosResult; 
+
+    //date nav
+    const isToday = currentDate === new Date().toISOString().split('T')[0];
+
+    function navigateDate(days: number) {
+        const date = new Date(currentDate + "T00:00:00");
+        date.setDate(date.getDate() + days);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (date > today) return;
+
+        const next = new URLSearchParams(searchParams);
+        next.set("date", date.toISOString().split('T')[0]);
+        setSearchParams(next, { replace: true});
+    }
 
     const caloriesConfig = {
         calories: {
@@ -60,13 +96,41 @@ export default function CurrentDayMacros() {
     } satisfies ChartConfig
 
 
-    return data.error ? (
+    return macrosResult.error ? (
         <div className="flex flex-col items-center justify-center h-screen w-full max-w-4xl space-y-3 mx-auto   my-10">
             <h1>An error Occured</h1>
             <Button variant={"link"} onClick={() => navigate(-1)}> <ArrowLeft className="h-3" /> Go back </Button>
         </div>
     ) : (
-        <section className="w-full h-screen max-w-4xl space-y-3 mx-auto   py-19">
+        <section className="w-full h-screen max-w-4xl space-y-4 mx-auto py-10">
+        <div className="flex items-center justify-between bg-card border rounded-lg p-2 shadow-sm w-full">
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigateDate(-1)}
+                className="px-3"
+            >
+                ←
+            </Button>
+            <span className="font-medium text-center flex-1">
+                {isToday ? "Today" : new Date(currentDate + "T00:00:00").toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                })}
+            </span>
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigateDate(1)}
+                disabled={isToday}
+                className="px-3"
+            >
+                →
+            </Button>
+        </div>
+
+        
             <div>
                 <h1 className="text-3xl font-bold">Progress Today </h1>
             </div>
@@ -77,34 +141,34 @@ export default function CurrentDayMacros() {
                     chartData={
                         [
                             {
-                                calories: data.current.calories,
-                                current: data.current.calories,
-                                goal: data.goal.calories,
+                                calories: macrosResult.current.calories,
+                                current: macrosResult.current.calories,
+                                goal: macrosResult.goal.calories,
                                 unit: "kcal",
-                                fill: data.goal.calories > data.current.calories ? "var(--chart-2)" : "var(--chart-1)"
+                                fill: macrosResult.goal.calories > macrosResult.current.calories ? "var(--chart-2)" : "var(--chart-1)"
                             }
                         ]
                     }
                 />
                 <WaterStat
                     title="water"
-                    current={data.current.water}
-                    goal={data.goal.water}
+                    current={macrosResult.current.water}
+                    goal={macrosResult.goal.water}
                 />
                 <MacroStats title="Macro Nutrients"
                     data={
                         {
                             carbs: {
-                                current: data.current.carbohydrates,
-                                goal: data.goal.carbohydrates
+                                current: macrosResult.current.carbohydrates,
+                                goal: macrosResult.goal.carbohydrates
                             },
                             fat: {
-                                current: data.current.fat,
-                                goal: data.goal.fat
+                                current: macrosResult.current.fat,
+                                goal: macrosResult.goal.fat
                             },
                             protein: {
-                                current: data.current.protein,
-                                goal: data.goal.protein
+                                current: macrosResult.current.protein,
+                                goal: macrosResult.goal.protein
                             },
                         }
                     }
@@ -114,7 +178,7 @@ export default function CurrentDayMacros() {
 
             <div className="space-y-2">
                 <h1 className="text-3xl font-bold"> Meals today </h1>
-                <Link to="/analytics/logging" className="flex items-center" > Go to meals <ArrowRight className="h-3" /> </Link>
+                <Link to={`/analytics/logging?mode=simple&date=${currentDate}`} className="flex items-center" > Go to meals <ArrowRight className="h-3" /> </Link>
             </div>
         </section>
     )

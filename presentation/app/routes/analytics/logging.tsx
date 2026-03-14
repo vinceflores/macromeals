@@ -9,7 +9,7 @@ import { Label } from "~/components/ui/label"
 import { Fetch } from "~/lib/auth.server"
 import { searchFood, type FoodSearchResult, type RecipeListItem } from "~/lib/recipes-api"
 import { getSession } from "~/sessions.server"
-import { WaterLogForm } from "components/water-log-form"
+import WaterLogForm from "components/water-log-form"
 
 type MealLogIngredient = {
   name: string
@@ -63,7 +63,7 @@ async function getErrorMessage(response: Response, fallback: string) {
       if (body.detail) return body.detail
       if (body.errors) return JSON.stringify(body.errors)
     } catch {
-      // Fall back to status text when JSON parsing fails.
+ 
     }
   }
   return `${fallback} (HTTP ${response.status})`
@@ -390,7 +390,7 @@ export default function MealLoggingPage() {
   return (
 
     <div className="flex flex-col min-h-screen">
-      {/* <AppHeader profile={profile} /> */}
+     
 
       <main className="mx-auto w-full max-w-5xl p-6 space-y-4">
         <h1 className="text-3xl font-semibold">Meal Logging</h1>
@@ -607,12 +607,12 @@ export default function MealLoggingPage() {
           <CardContent className="space-y-6">
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-            {/* START OF THE FILTERING CODE */}
+            
             {["BREAKFAST", "LUNCH", "DINNER", "SNACK"].map((type) => {
               const typeLogs = logs.filter((l) => {
                 if (l.meal_name !== type) return false;
                 
-                // Defensive check: handle cases where date_logged might be missing
+               
                 const logDateValue = l.date_logged || l.created_at;
                 return logDateValue?.split("T")[0] === currentDate;
               });
@@ -631,7 +631,7 @@ export default function MealLoggingPage() {
                         <div className="flex justify-between items-baseline mb-2">
                           <p className="font-semibold text-lg">{log.calories} kcal</p>
                           
-                          {/* Edit/Remove alignment fixed with items-baseline */}
+                       
                           <div className="flex items-baseline gap-4">
                             <Link
                               to={`/edit/log/${log.id}`}
@@ -663,7 +663,7 @@ export default function MealLoggingPage() {
                 </div>
               );
             })}
-            {/* END OF THE FILTERING CODE */}
+            
           </CardContent>
         </Card>
       </main>

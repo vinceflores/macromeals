@@ -25,21 +25,21 @@ class MealLog(models.Model):
     fat = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def clean(self):
-        if self.meal_name != 'SNACK':
-            existing_meal = MealLog.objects.filter(
-                user = self.user,
-                meal_name = self.meal_name,
-                date_logged = self.date_logged
-            )
+    # def clean(self):
+    #     if self.meal_name != 'SNACK':
+    #         existing_meal = MealLog.objects.filter(
+    #             user = self.user,
+    #             meal_name = self.meal_name,
+    #             date_logged = self.date_logged
+    #         )
 
-            if self.pk:
-                existing_meal = existing_meal.exclude(pk = self.pk)
+    #         if self.pk:
+    #             existing_meal = existing_meal.exclude(pk = self.pk)
 
-            if existing_meal.exists():
-                raise ValidationError(
-                    f"You have already logged {self.get_meal_name_display()} for {self.date_logged}. Edit the existing log, or change your meal type."
-                )
+    #         if existing_meal.exists():
+    #             raise ValidationError(
+    #                 f"You have already logged {self.get_meal_name_display()} for {self.date_logged}. Edit the existing log, or change your meal type."
+    #             )
             
 
     def save(self, *args, **kwargs):
@@ -57,5 +57,6 @@ class WaterLog(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="water_logs") 
     water = models.FloatField(default=0) # in ml
     created_at = models.DateTimeField(auto_now_add=True)
+    date_logged = models.DateField(default=timezone.now)
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-date_logged", "-created_at"]
