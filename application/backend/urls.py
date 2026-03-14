@@ -23,6 +23,7 @@ from rest_framework_simplejwt.views import (
 # from . import views
 from django.contrib import admin
 from recipes.views import RecipeListCreateView, RecipeDetailView, FoodSearchView
+from recipes.external_api.views import RecipeAPISearchView
 from analytics.views import CurrentDayProgressView
 urlpatterns = [
     path("api/usda/search/", UsdaSearchView.as_view()),
@@ -39,4 +40,6 @@ urlpatterns = [
     path("api/analytics/", include("analytics.urls")),
     path("api/logging/", include("meal_logs.urls")),
     #test
+
+    path("api/external/recipe/search", RecipeAPISearchView.as_view()), 
 ]

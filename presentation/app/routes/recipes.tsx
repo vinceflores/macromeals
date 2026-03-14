@@ -1,4 +1,4 @@
-import { Link, data, redirect, useActionData, useLoaderData, useNavigation, useSearchParams } from "react-router"
+import { Form, Link, data, redirect, useActionData, useLoaderData, useNavigation, useSearchParams } from "react-router"
 import { useRef, useState } from "react"
 
 import AppHeader from "components/app-header"
@@ -59,6 +59,33 @@ export async function action({ request }: Route.ActionArgs) {
   if (!session.data.access) return redirect("/auth/login")
 
   const form = await request.formData()
+  const intent = String(form.get("intent") ?? "")
+
+  if (intent === "delete_recipe") {
+    const recipeId = Number(String(form.get("recipe_id") ?? "0"))
+    if (!recipeId) {
+      return data<ActionData>({ error: "Invalid recipe id." }, { status: 400 })
+    }
+
+    try {
+      const res = await Fetch(
+        new Request(`${process.env.SERVER_URL}/recipe/${recipeId}/`, {
+          method: "DELETE",
+        }),
+        session,
+      )
+
+      if (!res.ok && res.status !== 204) {
+        return data<ActionData>({ error: `Failed to remove recipe. HTTP ${res.status}` }, { status: 400 })
+      }
+
+      return data<ActionData>({ success: "Recipe removed." })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to remove recipe."
+      return data<ActionData>({ error: message }, { status: 400 })
+    }
+  }
+
   const name = String(form.get("name") ?? "").trim()
   const description = String(form.get("description") ?? "").trim()
   const servingsRaw = String(form.get("servings") ?? "1").trim()
@@ -220,15 +247,15 @@ export default function RecipesRoute() {
       prev.map((row) =>
         row.id === rowId
           ? {
-              ...row,
-              name: food.description ?? "",
-              macros: {
-                calories: food.macros.calories,
-                protein: food.macros.protein,
-                carbs: food.macros.carbs,
-                fat: food.macros.fat,
-              },
-            }
+            ...row,
+            name: food.description ?? "",
+            macros: {
+              calories: food.macros.calories,
+              protein: food.macros.protein,
+              carbs: food.macros.carbs,
+              fat: food.macros.fat,
+            },
+          }
           : row,
       ),
     )
@@ -265,7 +292,7 @@ export default function RecipesRoute() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <AppHeader profile={profile} />
+      {/* <AppHeader profile={profile} /> */}
       <main className="mx-auto w-full max-w-5xl p-6">
         <h1 className="text-3xl font-semibold">Recipes</h1>
 
@@ -321,9 +348,18 @@ export default function RecipesRoute() {
                       <p className="mt-1 text-sm">
                         Total macros: {total.calories} kcal | P {total.protein}g | C {total.carbs}g | F {total.fat}g
                       </p>
-                      <Link to={`/recipes/${recipe.id}`} className="mt-2 inline-block text-sm underline">
-                        View Details
-                      </Link>
+                      <div className="mt-2 flex gap-3">
+                        <Link to={`/recipes/${recipe.id}`} className="inline-block text-sm underline">
+                          View Details
+                        </Link>
+                        <Form method="post">
+                          <input type="hidden" name="intent" value="delete_recipe" />
+                          <input type="hidden" name="recipe_id" value={recipe.id} />
+                          <button type="submit" className="text-sm underline">
+                            Remove
+                          </button>
+                        </Form>
+                      </div>
                     </li>
                   )
                 })}
