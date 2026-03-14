@@ -7,10 +7,18 @@ export type WaterLogFormProps = {
     action?: string
 }
 
-// Notice the '?' after currentDate to make it optional
-export default function WaterForm({ action, currentDate }: { action?: string, currentDate?: string }) {   
+export default function WaterForm({ 
+  action, 
+  currentDate 
+}: { 
+  action?: string, 
+  currentDate: string 
+}) {   
     const fetcher = useFetcher();
-    
+    const isSuccess = fetcher.data?.success;
+    const isLogging = fetcher.state !== "idle";
+
+
     return (
         <fetcher.Form
             className="space-y-3"
@@ -18,12 +26,33 @@ export default function WaterForm({ action, currentDate }: { action?: string, cu
             method="post"
         >
             <Label htmlFor="water"> Log Water Intake (ml) </Label>
-            {/* Added a check: if currentDate is missing, don't even render the input */}
             <div className="flex justify-center items-center gap-2"> 
-                {currentDate && <input type="hidden" name="date" value={currentDate} />}
-                <Input id="water" name="water" placeholder="1000" type="number" />
-                <Button type="submit"> Log </Button>
-            </div>
+                    <input type="hidden" name="date" value={currentDate} />
+                    <Input 
+                        id="water" 
+                        name="water" 
+                        placeholder="1000" 
+                        type="number" 
+                        disabled={isLogging}
+                    />
+                    <Button type="submit" disabled={isLogging}> 
+                        {isLogging ? "Logging..." : "Log"} 
+                    </Button>
+                </div>
+
+            
+                {isSuccess && (
+                    <p className="text-sm text-green-600 font-medium animate-in fade-in slide-in-from-top-1">
+                        Water logged successfully!
+                    </p>
+                )}
+                
+                
+                {fetcher.data?.error && (
+                    <p className="text-sm text-red-600 font-medium">
+                        {fetcher.data.error}
+                    </p>
+                )}
         </fetcher.Form>
     );
 }

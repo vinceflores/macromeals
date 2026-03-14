@@ -598,7 +598,7 @@ export default function MealLoggingPage() {
         {actionData?.error ? <p className="text-sm text-red-600">{actionData.error}</p> : null}
         {actionData?.success ? <p className="text-sm text-green-600">{actionData.success}</p> : null}
 
-        <WaterLogForm />
+        <WaterLogForm currentDate={currentDate} />
 
         <Card>
           <CardHeader>
