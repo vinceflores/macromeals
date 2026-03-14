@@ -53,6 +53,13 @@ export default function ProtectedRoutesLayout({ loaderData }: Route.ComponentPro
                 </Link>
 
                 <Link
+                to="/calendar"
+                className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+                >
+                Open Calendar
+                </Link>
+
+                <Link
                     to={`/analytics/macros?date=${currentDate}`}
                     className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
                 >

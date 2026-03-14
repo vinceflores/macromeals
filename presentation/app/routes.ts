@@ -13,6 +13,7 @@ export default [
     route("recipes/:id", "routes/recipe-detail.tsx"),
     route("edit/:kind/:id", "routes/edit-item.tsx"),
     route("recipes/search/external/", "routes/recipe/search-recipe.tsx") ,
+    route("calendar", "routes/calendar.tsx"),
     route("analytics/macros", "routes/analytics/macros.tsx"),
     route("analytics/logging", "routes/analytics/logging.tsx"),
     route("analytics/logging/water", "routes/analytics/water_log.tsx"),
@@ -26,3 +27,4 @@ export default [
   route("auth/register", "routes/auth/register.tsx"),
   route("auth/logout", "routes/auth/logout.tsx"),
 ] satisfies RouteConfig;
+
