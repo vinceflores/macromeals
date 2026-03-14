@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from .serializers import WaterLogSerializer
 from .models import MealLog
 from .serializers import MealLogCreateSerializer, MealLogSerializer
-from django.utils   import timezone
+from django.utils import timezone
 
 def _compute_macros_from_ingredients(ingredients):
     totals = {"calories": 0.0, "protein": 0.0, "carbohydrates": 0.0, "fat": 0.0}
@@ -139,7 +139,7 @@ class WaterLogView(APIView):
         
     def post(self, request):
 
-        date_logged = request.data.get('date_logged') or timezone.now().date()
+        date_logged = request.data.get('date_logged') or timezone.localtime(timezone.now().date())
         serializer = self.serializer_class  (data = request.data)
         if not serializer.is_valid():
             return Response( {"errors": serializer.errors},status=status.HTTP_400_BAD_REQUEST)

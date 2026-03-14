@@ -1,6 +1,6 @@
 import type { Route } from ".react-router/types/app/layouts/+types/protected_routes";
 import AppHeader from "components/app-header";
-import { Link, Outlet, redirect } from "react-router";
+import { Link, Outlet, redirect, useSearchParams} from "react-router";
 import { Fetch } from "~/lib/auth.server";
 import { getSession } from "~/sessions.server";
 // import { getSession } from "../sessions.server";
@@ -24,7 +24,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function ProtectedRoutesLayout({ loaderData }: Route.ComponentProps) {
+    const [searchParams] = useSearchParams();
     
+    const localToday = new Date().toLocaleDateString('en-CA');
+    const currentDate = searchParams.get("date") || localToday;
+
     return (
         <>
             <AppHeader
@@ -35,7 +39,12 @@ export default function ProtectedRoutesLayout({ loaderData }: Route.ComponentPro
                 }}
                 showHome={false}
             >
-                <Link to="/recipes/search/external/">Browse Recieps</Link>
+                <Link 
+                    to="/recipes/search/external/"
+                    className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+                    >Browse Recipes
+                </Link>
+
                 <Link
                     to="/recipes"
                     className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
@@ -44,22 +53,21 @@ export default function ProtectedRoutesLayout({ loaderData }: Route.ComponentPro
                 </Link>
 
                 <Link
-                    to="/analytics/macros"
+                    to={`/analytics/macros?date=${currentDate}`}
                     className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
                 >
                     Daily Progress
                 </Link>
                 <Link
-                    to="/analytics/logging?mode=recipe"
+                    to={`/analytics/logging?mode=recipe&date=${currentDate}`}
                     className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
                 >
                     Meal Logging
                 </Link>
             </AppHeader>
-            < Outlet />
+            <Outlet />
         </>
-    )
-
+    );
 }
 
 // function ProtectedRouteProvider({ children }: { children: React.ReactNode }) {

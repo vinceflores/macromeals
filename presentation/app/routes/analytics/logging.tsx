@@ -93,7 +93,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!session.data.access) return redirect("/auth/login")
 
   const url = new URL(request.url);
-  const dateStr = url.searchParams.get("date") || new Date().toISOString().split('T')[0];
+  const dateStr = url.searchParams.get("date") || new Date().toLocaleDateString('en-CA');
 
   try {
     const [profileRes, recipesRes, logsRes] = await Promise.all([
@@ -372,19 +372,17 @@ export default function MealLoggingPage() {
     const date = new Date(currentDate + "T00:00:00"); 
     date.setDate(date.getDate() + days);
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const localToday = new Date().toLocaleDateString('en-CA');
+    const targetDateString = date.toLocaleDateString('en-CA');
 
-    
-    if (date > today) return;
+    if (targetDateString > localToday) return;
 
     const next = new URLSearchParams(searchParams);
-    next.set("date", date.toISOString().split('T')[0]);
+    next.set("date", targetDateString);
     setSearchParams(next, { replace: true });
   }
 
-  const isToday = currentDate === new Date().toISOString().split('T')[0];
-
+  const isToday = currentDate === new Date().toLocaleDateString('en-CA');
   
 
   return (

@@ -28,7 +28,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
     //get date from url - default is today
     const url = new URL(request.url);
-    const date = url.searchParams.get("date") || new Date().toISOString().split('T')[0];
+    const browserDate = new Date().toLocaleDateString('en-CA');
+    const date = url.searchParams.get("date") || browserDate
 
 
     try {
@@ -66,19 +67,18 @@ export default function CurrentDayMacros() {
     const { currentDate } = macrosResult; 
 
     //date nav
-    const isToday = currentDate === new Date().toISOString().split('T')[0];
-
-    function navigateDate(days: number) {
+        const isToday = currentDate === new Date().toLocaleDateString('en-CA');    function navigateDate(days: number) {
         const date = new Date(currentDate + "T00:00:00");
         date.setDate(date.getDate() + days);
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const localTodayString = new Date().toLocaleDateString('en-CA');
+        const targetDateString = date.toLocaleDateString('en-CA');
 
-        if (date > today) return;
+            
+        if (targetDateString > localTodayString) return;
 
         const next = new URLSearchParams(searchParams);
-        next.set("date", date.toISOString().split('T')[0]);
+        next.set("date", date.toLocaleDateString('en-CA'));
         setSearchParams(next, { replace: true});
     }
 

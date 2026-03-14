@@ -39,11 +39,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <main className="mx-auto w-full max-w-6xl p-6">
           <h1 className="text-2xl font-bold">Dashboard</h1>
 
-        <a href="/analytics/logging" className="text-red-500 font-bold underline">
-  FORCE NAVIGATE TO MEALS
-</a>
-
-
       </main>
     </div>
   );
