@@ -155,7 +155,7 @@ export function WaterStat(props: WaterStatProps) {
             </CardHeader>
             <CardContent className="flex flex-col-reverse h-full">
                 <ChartContainer className="h-full" config={chartConfig}>
-                    <BarChart accessibilityLayer data={chartData} margin={{ top: 20 }}>
+                    <BarChart accessibilityLayer data={chartData} >
                         <CartesianGrid vertical={false} />
                         <YAxis
                             type="number"
@@ -164,21 +164,16 @@ export function WaterStat(props: WaterStatProps) {
                             tickMargin={10}
                             axisLine={true}
                             domain={[0, props.goal]}
-                            className="h-full"
+                            className=""
                         />
-                        {/* <XAxis
-                            dataKey="xlabel"
-                            tickLine={false}
-                            tickMargin={10}
-                            axisLine={false}
-                        /> */}
+                    
                         <Bar dataKey="water" fill="#99CFFF" radius={8} >
                             <LabelList
                                 dataKey="water"
                                 position="center"
                                 fill="#000"
                                 fontSize={14}
-                                formatter={(value: number) => `${value} ml`}
+                                formatter={(value: number) => value != 0? `${value} ml` : ""}
                             />
                         </Bar>
                     </BarChart>

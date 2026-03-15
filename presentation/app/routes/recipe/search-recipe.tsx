@@ -1,6 +1,8 @@
 
 import type { Route } from ".react-router/types/app/routes/recipe/+types/search-recipe";
-import { data, Form, useFetcher, useLoaderData, type FetcherWithComponents, type Session } from 'react-router';
+import { useEffect } from "react";
+import { data, Form, useActionData, useFetcher, useLoaderData, type FetcherWithComponents, type Session } from 'react-router';
+import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -23,7 +25,6 @@ type Recipe = {
     description: string;
     id: string
 };
-
 
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -51,8 +52,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
     const session = await getSession(request.headers.get("Cookie"));
-    const data = await request.json()
-    async function saveRecipeFromFS(payload: CreateRecipePayload, session: Session) {
+    const payload = await request.json()
+    // async function saveRecipeFromFS(payload: CreateRecipePayload, session: Session) {
         try {
             const res = await Fetch(
                 new Request(`${process.env.SERVER_URL}/recipe/`, {
@@ -72,26 +73,41 @@ export async function action({ request }: Route.ActionArgs) {
                     // Keep default message when response body is not JSON.
                 }
                 // return data<ActionData>({ error: String(message) }, { status: 400 })
-                return { error: String(message) }
+                return data(
+                    { success: false, error: true, message: String(message) }
+                )
             }
 
             // return data<ActionData>({ success: "Recipe created successfully." },  )
-            return { success: "Recipe created successfully." }
+            return data(
+                { success: true, message: "Recipe created successfully." }
+            )
         } catch (error) {
             const message = error instanceof Error ? error.message : "Failed to create recipe."
-            // return data<ActionData>({ error: message }, { status: 400 })
-            return { error: message }
+            return data({ success: false, error: true, message })
         }
-    }
+    // }
 
-    await saveRecipeFromFS(data, session)
+    // return await saveRecipeFromFS(d, session)
 }
 
-export default function Recipes() {
-    const data = useLoaderData<typeof loader>()
+export default function Recipes({
+    loaderData
+}: Route.ComponentProps) {
+    // const  = useLoaderData<typeof loader>()
     const fetcher = useFetcher()
+    const actionData = useActionData()
 
-    return data.error ? (<div>
+    useEffect(() => {
+        if (!fetcher.data) return;
+        if (fetcher.data.success) {
+            toast.success(fetcher.data.message);
+        } else {
+            toast.error(fetcher.data.message);
+        }
+    }, [fetcher.data]);
+
+    return loaderData.error ? (<div>
         Error
     </div>) : (
         <div className="w-full max-w-6xl m-auto py-6 flex flex-col justify-center items-center">
@@ -105,23 +121,23 @@ export default function Recipes() {
             </Form>
 
             <div className="flex p-2 items-center justify-between w-full">
-                <h2 className="font-light">{data.recipes.length} resutls found</h2>
+                <h2 className="font-light">{loaderData.recipes.length} resutls found</h2>
                 <div className="flex justify-center  gap-1">
                     <Form >
-                        <Input hidden value={Number(data.page) - 1} name="page" type="number" />
-                        <Input hidden name="q" defaultValue={data.q as string} id="search_recipe" />
-                        <Button disabled={Number(data.page) === 0} type="submit" variant={"outline"}> Prev </Button>
+                        <Input hidden value={Number(loaderData.page) - 1} name="page" type="number" />
+                        <Input hidden name="q" defaultValue={loaderData.q as string} id="search_recipe" />
+                        <Button disabled={Number(loaderData.page) === 0} type="submit" variant={"outline"}> Prev </Button>
                     </Form>
                     <Form>
-                        <Input hidden value={Number(data.page) + 1} name="page" type="number" />
-                        <Input hidden name="q" defaultValue={data.q as string} id="search_recipe" />
+                        <Input hidden value={Number(loaderData.page) + 1} name="page" type="number" />
+                        <Input hidden name="q" defaultValue={loaderData.q as string} id="search_recipe" />
                         <Button type="submit" variant={"outline"}> Next </Button>
                     </Form>
                 </div>
             </div>
             <div className="grid grid-cols-3 gap-3 p-4">
                 {
-                    data.recipes.map(i => (
+                    loaderData.recipes.map(i => (
                         <RecipeCard key={i.id} recipe={i} fetcher={fetcher} />
                     ))
                 }
