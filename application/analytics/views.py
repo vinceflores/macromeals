@@ -47,7 +47,7 @@ class CurrentDayProgressView(APIView):
                 "fat": user.daily_calorie_goal/8 * user.fat_goal/100 , 
                 "protein":  user.daily_calorie_goal/4 * user.protein_goal/100,
                 "carbohydrates": user.daily_calorie_goal/4 * user.carbs_goal/100, 
-                "water": user.water_goal*1000
+                "water": user.water_goal
              }
             }
         )       

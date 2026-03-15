@@ -5,7 +5,7 @@ from django.urls import path
 from app import views
 
 urlpatterns = [
-    path("me/", views.MeView.as_view() )
+    # path("me/", views.MeView.as_view() )
 ]
 
 

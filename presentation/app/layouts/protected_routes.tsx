@@ -1,9 +1,8 @@
 import type { Route } from ".react-router/types/app/layouts/+types/protected_routes";
 import AppHeader from "components/app-header";
-import { Link, Outlet, redirect } from "react-router";
+import { data, Link, Outlet, redirect } from "react-router";
 import { Fetch } from "~/lib/auth.server";
 import { getSession } from "~/sessions.server";
-// import { getSession } from "../sessions.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
     const session = await getSession(request.headers.get("Cookie"));
@@ -14,17 +13,20 @@ export async function loader({ request }: Route.LoaderArgs) {
                 session,
             );
             const me = await res.json();
-            return me;
+            return data(me, {
+                headers: {
+                    "Set-Cookie": res.headers.get("Set-Cookie") as string
+                }
+            });
         } catch (error) {
             throw error;
         }
     }
-    // return { email: "no email" }
     return redirect("/auth/login");
 }
 
 export default function ProtectedRoutesLayout({ loaderData }: Route.ComponentProps) {
-    
+
     return (
         <>
             <AppHeader
