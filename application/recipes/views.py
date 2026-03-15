@@ -171,6 +171,15 @@ class RecipeDetailView(APIView):
         recipe.macros = compute_macros(recipe)
         return Response(RecipeDetailSerializer(recipe).data, status=status.HTTP_200_OK)
 
+    def delete(self, request, recipe_id: int):
+        user = request.user
+        recipe = Recipe.objects.filter(user=user, id=recipe_id).first()
+        if not recipe:
+            return Response({"detail": "Not found"}, status=404)
+
+        recipe.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 def _extract_macro(food: dict, nutrient_number: str, nutrient_name: str):
     for nutrient in food.get("foodNutrients", []):

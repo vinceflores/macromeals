@@ -80,31 +80,44 @@ export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   if (!session.data.access) return redirect("/auth/login");
 
-  const form = await request.formData();
-  const name = String(form.get("name") ?? "").trim();
-  const description = String(form.get("description") ?? "").trim();
-  const servingsRaw = String(form.get("servings") ?? "1").trim();
-  const ingredientNames = form
-    .getAll("ingredient_name")
-    .map((v) => String(v ?? "").trim());
-  const ingredientQuantities = form
-    .getAll("ingredient_quantity")
-    .map((v) => String(v ?? "").trim());
-  const ingredientUnits = form
-    .getAll("ingredient_unit")
-    .map((v) => String(v ?? "").trim());
-  const ingredientCalories = form
-    .getAll("ingredient_calories")
-    .map((v) => String(v ?? "").trim());
-  const ingredientProtein = form
-    .getAll("ingredient_protein")
-    .map((v) => String(v ?? "").trim());
-  const ingredientCarbs = form
-    .getAll("ingredient_carbs")
-    .map((v) => String(v ?? "").trim());
-  const ingredientFat = form
-    .getAll("ingredient_fat")
-    .map((v) => String(v ?? "").trim());
+  const form = await request.formData()
+  const intent = String(form.get("intent") ?? "")
+
+  if (intent === "delete_recipe") {
+    const recipeId = Number(String(form.get("recipe_id") ?? "0"))
+    if (!recipeId) {
+      return data<ActionData>({ error: "Invalid recipe id." }, { status: 400 })
+    }
+
+    try {
+      const res = await Fetch(
+        new Request(`${process.env.SERVER_URL}/recipe/${recipeId}/`, {
+          method: "DELETE",
+        }),
+        session,
+      )
+
+      if (!res.ok && res.status !== 204) {
+        return data<ActionData>({ error: `Failed to remove recipe. HTTP ${res.status}` }, { status: 400 })
+      }
+
+      return data<ActionData>({ success: "Recipe removed." })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to remove recipe."
+      return data<ActionData>({ error: message }, { status: 400 })
+    }
+  }
+
+  const name = String(form.get("name") ?? "").trim()
+  const description = String(form.get("description") ?? "").trim()
+  const servingsRaw = String(form.get("servings") ?? "1").trim()
+  const ingredientNames = form.getAll("ingredient_name").map((v) => String(v ?? "").trim())
+  const ingredientQuantities = form.getAll("ingredient_quantity").map((v) => String(v ?? "").trim())
+  const ingredientUnits = form.getAll("ingredient_unit").map((v) => String(v ?? "").trim())
+  const ingredientCalories = form.getAll("ingredient_calories").map((v) => String(v ?? "").trim())
+  const ingredientProtein = form.getAll("ingredient_protein").map((v) => String(v ?? "").trim())
+  const ingredientCarbs = form.getAll("ingredient_carbs").map((v) => String(v ?? "").trim())
+  const ingredientFat = form.getAll("ingredient_fat").map((v) => String(v ?? "").trim())
 
   if (!name) {
     return data<ActionData>(
@@ -433,12 +446,18 @@ export default function RecipesRoute() {
                         Total macros: {total.calories} kcal | P {total.protein}g
                         {" | "}C {total.carbs}g | F {total.fat}g
                       </p>
-                      <Link
-                        to={`/recipes/${recipe.id}`}
-                        className="mt-2 inline-block text-sm underline"
-                      >
-                        View Details
-                      </Link>
+                      <div className="mt-2 flex gap-3">
+                        <Link to={`/recipes/${recipe.id}`} className="inline-block text-sm underline">
+                          View Details
+                        </Link>
+                        <Form method="post">
+                          <input type="hidden" name="intent" value="delete_recipe" />
+                          <input type="hidden" name="recipe_id" value={recipe.id} />
+                          <button type="submit" className="text-sm underline">
+                            Remove
+                          </button>
+                        </Form>
+                      </div>
                     </li>
                   );
                 })}

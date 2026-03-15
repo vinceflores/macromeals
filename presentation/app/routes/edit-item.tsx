@@ -2,7 +2,6 @@ import type { Route } from "./+types/edit-item"
 import { Link, data, redirect, useActionData, useLoaderData, useNavigation } from "react-router"
 import { useRef, useState } from "react"
 
-import AppHeader from "../../components/app-header"
 import RecipeFormBlock, { type RecipeFormIngredientRow } from "components/recipe-form-block"
 import { Fetch } from "~/lib/auth.server"
 import { searchFood, type FoodSearchResult } from "~/lib/recipes-api"
@@ -367,9 +366,7 @@ export default function EditItemRoute() {
   const backTo = loaderData.kind === "recipe" ? `/recipes/${loaderData.id}` : "/analytics/logging"
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <AppHeader profile={loaderData.profile || EMPTY_PROFILE} />
-      <main className="mx-auto w-full max-w-4xl p-6">
+    <div className="mx-auto w-full max-w-4xl p-6">
         <Link to={backTo} className="text-sm underline">Back</Link>
 
         {loaderData.error ? (
@@ -409,7 +406,6 @@ export default function EditItemRoute() {
             {actionData?.error ? <p className="mt-3 text-sm text-red-700">{actionData.error}</p> : null}
           </>
         )}
-      </main>
     </div>
   )
 }
