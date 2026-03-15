@@ -14,3 +14,4 @@ build/__pycache__/
 *.pyc
 application/app/__pycache__/urls.cpython-312.pyc
 application/app/__pycache__/urls.cpython-312.pyc
+application/app/__pycache__
