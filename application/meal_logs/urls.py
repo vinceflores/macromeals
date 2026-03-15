@@ -1,6 +1,9 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import MealLogListCreateView, MealLogDetailView, MealLogViewSet, WaterLogView
 
-from .views import MealLogListCreateView, MealLogDetailView, WaterLogView
+router = DefaultRouter()
+router.register(r'logging', MealLogViewSet)
 
 urlpatterns = [
     path("", MealLogListCreateView.as_view(), name="meal-log-list-create"),
