@@ -41,8 +41,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <main className="mx-auto w-full max-w-6xl p-6">
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">Welcome, {fullName}</p>
-          <p className="text-muted-foreground">Logged in as: {loaderData.email}</p>
-
+          {/* <p className="text-muted-foreground">Logged in as: {loaderData.email}</p> */}
        
       </main>
     </div>
