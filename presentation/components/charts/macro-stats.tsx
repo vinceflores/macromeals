@@ -234,7 +234,6 @@ export function MacroStats(props: MacroStatsProps) {
             <CardContent className="">
                 <ChartContainer className="h-[150px] w-full" config={chartConfig}>
                     <BarChart
-                        layout="vertical"
                         barCategoryGap="40%" 
                         barSize={24}
                         accessibilityLayer data={chartData} margin={{ top: 20 }} layout="vertical">
