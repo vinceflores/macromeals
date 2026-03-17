@@ -26,5 +26,8 @@ export default [
   route("auth/reset-password/resend", "routes/auth/reset-password.resend.tsx"),
   route("auth/register", "routes/auth/register.tsx"),
   route("auth/logout", "routes/auth/logout.tsx"),
+  route("action/set-theme", "routes/action.set-theme.ts"),
+
+
 ] satisfies RouteConfig;
 

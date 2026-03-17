@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 
 import { UserNav } from "./user-navigation";
+import { ModeToggle } from "components/mode-toggle";
 
 export type HeaderProfile = {
   email: string;
@@ -41,6 +42,7 @@ export default function AppHeader({
             first_name={profile.first_name}
             last_name={profile.last_name}
           />
+          <ModeToggle />
         </div>
       </div>
     </header>
