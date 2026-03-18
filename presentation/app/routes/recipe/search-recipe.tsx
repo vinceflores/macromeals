@@ -1,6 +1,6 @@
 
 import type { Route } from ".react-router/types/app/routes/recipe/+types/search-recipe";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { data, Form, useActionData, useFetcher, useLoaderData, type FetcherWithComponents, type Session } from 'react-router';
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -10,7 +10,17 @@ import { Label } from "~/components/ui/label";
 import { Fetch } from "~/lib/auth.server";
 import { type CreateRecipePayload } from "~/lib/recipes-api";
 import { getSession } from "~/sessions.server";
-
+import {
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "~/components/ui/sheet"
+import { cn } from "~/lib/utils";
 
 type Macros = {
     calories: number;
@@ -24,7 +34,12 @@ type Recipe = {
     name: string;
     description: string;
     id: string
+    recipe_image: string
+    recipe_ingredients: {
+        ingredient: string[]
+    }
 };
+
 
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -54,38 +69,38 @@ export async function action({ request }: Route.ActionArgs) {
     const session = await getSession(request.headers.get("Cookie"));
     const payload = await request.json()
     // async function saveRecipeFromFS(payload: CreateRecipePayload, session: Session) {
-        try {
-            const res = await Fetch(
-                new Request(`${process.env.SERVER_URL}/recipe/`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                }),
-                session,
-            )
+    try {
+        const res = await Fetch(
+            new Request(`${process.env.SERVER_URL}/recipe/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            }),
+            session,
+        )
 
-            if (!res.ok) {
-                let message = `HTTP ${res.status}`
-                try {
-                    const body = await res.json()
-                    message = body?.detail ?? body?.errors ?? message
-                } catch {
-                    // Keep default message when response body is not JSON.
-                }
-                // return data<ActionData>({ error: String(message) }, { status: 400 })
-                return data(
-                    { success: false, error: true, message: String(message) }
-                )
+        if (!res.ok) {
+            let message = `HTTP ${res.status}`
+            try {
+                const body = await res.json()
+                message = body?.detail ?? body?.errors ?? message
+            } catch {
+                // Keep default message when response body is not JSON.
             }
-
-            // return data<ActionData>({ success: "Recipe created successfully." },  )
+            // return data<ActionData>({ error: String(message) }, { status: 400 })
             return data(
-                { success: true, message: "Recipe created successfully." }
+                { success: false, error: true, message: String(message) }
             )
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "Failed to create recipe."
-            return data({ success: false, error: true, message })
         }
+
+        // return data<ActionData>({ success: "Recipe created successfully." },  )
+        return data(
+            { success: true, message: "Recipe created successfully." }
+        )
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to create recipe."
+        return data({ success: false, error: true, message })
+    }
     // }
 
     // return await saveRecipeFromFS(d, session)
@@ -95,6 +110,9 @@ export default function Recipes({
     loaderData
 }: Route.ComponentProps) {
     // const  = useLoaderData<typeof loader>()
+    const [open, setOpen] = useState(false)
+    const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
+
     const fetcher = useFetcher()
     const actionData = useActionData()
 
@@ -106,6 +124,33 @@ export default function Recipes({
             toast.error(fetcher.data.message);
         }
     }, [fetcher.data]);
+
+    const handleSelectRecipe = (r: Recipe) => {
+        setSelectedRecipe(r)
+        setOpen(true)
+    }
+    const handleSave = (i: Recipe) => fetcher.submit(
+        {
+            name: i.name,
+            description: i.description,
+            servings: 1,
+            ingredients: [
+                {
+                    name: i.name,
+                    quantity: 100,
+                    calories_per_100g: i.macros.calories,
+                    carbs_per_100g: i.macros.carbohydrate,
+                    fat_per_100g: i.macros.fat,
+                    protein_per_100g: i.macros.protein
+                }
+            ]
+        } satisfies CreateRecipePayload,
+        {
+            method: "POST",
+            preventScrollReset: true,
+            encType: "application/json",
+        }
+    )
 
     return loaderData.error ? (<div>
         Error
@@ -138,10 +183,53 @@ export default function Recipes({
             <div className="grid grid-cols-3 gap-3 p-4">
                 {
                     loaderData.recipes.map(i => (
-                        <RecipeCard key={i.id} recipe={i} fetcher={fetcher} />
+                        <RecipeCard
+                            key={i.id}
+                            recipe={i}
+                            fetcher={fetcher}
+                            onClick={() => handleSelectRecipe(i)}
+                        />
                     ))
                 }
             </div>
+            {
+                selectedRecipe &&
+                <Sheet open={open} onOpenChange={setOpen}>
+                    {/* <SheetTrigger>Open</SheetTrigger> */}
+                    <SheetContent>
+                        <SheetHeader>
+                            <img
+                                src={selectedRecipe.recipe_image}
+                                alt={selectedRecipe.name}
+                                className="w-full aspect-video  object-cover rounded-top-3xl "
+                            />
+                            <div className="p-3 space-y-2">
+                                <SheetTitle>{selectedRecipe.name} </SheetTitle>
+                                <SheetDescription> {selectedRecipe.description} </SheetDescription>
+                                <div className="flex flex-wrap gap-2 text-xs">
+                                    <p className="text-xs font-semibold">Calories: {selectedRecipe.macros.calories} </p>
+                                    <p>C: {selectedRecipe.macros.carbohydrate} </p>
+                                    <p>F: {selectedRecipe.macros.fat} </p>
+                                    <p>P: {selectedRecipe.macros.protein} </p>
+                                </div>
+                                <div className="">
+                                    <h1 className=" p-0 font-medium text-md pb-2">Ingredients</h1>
+                                    <ol className="px-6">
+                                        {
+                                            selectedRecipe.recipe_ingredients.ingredient?.map((i, k) => (
+                                                <li key={k} className="list-disc text-sm"> {i} </li>
+                                            ))
+                                        }
+                                    </ol>
+                                </div>
+                                <SheetFooter>
+                                <Button onClick={() => handleSave(selectedRecipe)} >Save</Button>
+                                </SheetFooter>
+                            </div>
+                        </SheetHeader>
+                    </SheetContent>
+                </Sheet>
+            }
         </div>
     )
 }
@@ -149,40 +237,26 @@ export default function Recipes({
 type RecipeCardProps = {
     fetcher: FetcherWithComponents<any>
     recipe: Recipe
-}
+} & React.ComponentProps<"div">
 
 function RecipeCard(props: RecipeCardProps) {
     const i = props.recipe
-    const handleSave = () => props.fetcher.submit(
-        {
-            name: i.name,
-            description: i.description,
-            servings: 1,
-            ingredients: [
-                {
-                    name: i.name,
-                    quantity: 100,
-                    calories_per_100g: i.macros.calories,
-                    carbs_per_100g: i.macros.carbohydrate,
-                    fat_per_100g: i.macros.fat,
-                    protein_per_100g: i.macros.protein
-                }
-            ]
-        } satisfies CreateRecipePayload,
-        {
-            method: "POST",
-            preventScrollReset: true,
-            encType: "application/json",
-        }
-    )
+
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{i.name} </CardTitle>
-                <CardDescription> {i.description} </CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-start w-md  justify-between gap-2">
-                <div className=" h-full space-y-2">
+        <Card {...props} className={cn(
+            // "w-75 pt-0", 
+            "pt-0",
+            props.className
+        )}>
+            <CardHeader className=" px-0 rounded-t-2xl">
+                <img
+                    src={i.recipe_image}
+                    alt={i.name}
+                    className="w-full aspect-video rounded-t-2xl object-cover rounded-top-3xl rounded-b-none"
+                />
+                <div className="p-3 space-y-2">
+                    <CardTitle>{i.name} </CardTitle>
+                    <CardDescription> {i.description} </CardDescription>
                     <div className="flex flex-wrap gap-2 text-xs">
                         <p className="text-xs font-semibold">Calories: {i.macros.calories} </p>
                         <p>C: {i.macros.carbohydrate} </p>
@@ -190,12 +264,14 @@ function RecipeCard(props: RecipeCardProps) {
                         <p>P: {i.macros.protein} </p>
                     </div>
                 </div>
+            </CardHeader>
+            <CardContent className="flex flex-col items-start w-md  justify-between gap-2">
             </CardContent>
-            <CardFooter>
+            {/* <CardFooter>
                 <CardAction>
                     <Button onClick={handleSave} >Save</Button>
                 </CardAction>
-            </CardFooter>
+            </CardFooter> */}
         </Card>
     )
 }
