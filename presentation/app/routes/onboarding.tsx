@@ -24,7 +24,7 @@ import { cn } from "~/lib/utils";
 // ─────────────────────────────────────────────────────────────────────────────
 
 type UnitSystem = "metric" | "imperial";
-type BiologicalGender = "male" | "female" | "other";
+type BiologicalSex = "male" | "female" | "other";
 type FitnessGoal = "lose_weight" | "maintain" | "gain_muscle" | "general";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -61,7 +61,7 @@ export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
 
   const unitSystem  = formData.get("unit_system") as UnitSystem;
-  const biologicalGender = formData.get("biological_gender") as string;
+  const biologicalSex = formData.get("biological_sex") as string;
   const age         = Number(formData.get("age"));
   const exerciseDays = Number(formData.get("exercise_days_per_week"));
   const fitnessGoal = formData.get("fitness_goal") as string;
@@ -85,7 +85,7 @@ export async function action({ request }: Route.ActionArgs) {
     height_cm:              parseFloat(heightCm.toFixed(2)),
     weight_kg:              parseFloat(weightKg.toFixed(2)),
     age,
-    biological_gender:         biologicalGender,
+    biological_sex:         biologicalSex,
     exercise_days_per_week: exerciseDays,
     fitness_goal:           fitnessGoal,
   };
@@ -153,7 +153,7 @@ export default function Onboarding() {
 
   const [step, setStep]               = useState(1);
   const [unitSystem, setUnitSystem]   = useState<UnitSystem>("metric");
-  const [gender, setGender]                 = useState<BiologicalGender | "">("");
+  const [sex, setSex]                 = useState<BiologicalSex | "">("");
   const [age, setAge]                 = useState("");
   const [heightCm, setHeightCm]       = useState("");
   const [heightFt, setHeightFt]       = useState("");
@@ -167,7 +167,7 @@ export default function Onboarding() {
 
   const canAdvance = () => {
     switch (step) {
-      case 1: return gender !== "";
+      case 1: return sex !== "";
       case 2: return age !== "" && Number(age) >= 13 && Number(age) <= 120;
       case 3:
         if (unitSystem === "metric") return heightCm !== "" && weightKg !== "";
@@ -209,7 +209,7 @@ export default function Onboarding() {
       {/* Card */}
       <div className="w-full max-w-lg bg-card border rounded-2xl shadow-sm p-8 space-y-6">
 
-        {/* ── Step 1: Biological gender ───────────────────────────────────────── */}
+        {/* ── Step 1: Biological sex ───────────────────────────────────────── */}
         {step === 1 && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">What's your gender?</h2>
@@ -227,10 +227,10 @@ export default function Onboarding() {
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setGender(opt.value)}
+                  onClick={() => setSex(opt.value)}
                   className={cn(
                     "flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-sm font-medium transition-all",
-                    gender === opt.value
+                    sex === opt.value
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-border hover:border-primary/50",
                   )}
@@ -478,7 +478,7 @@ export default function Onboarding() {
             // Final step — build a hidden form and submit it programmatically
             <form method="post" id="onboarding-form" className="contents">
               <input type="hidden" name="unit_system"            value={unitSystem} />
-              <input type="hidden" name="biological_gender"         value={gender} />
+              <input type="hidden" name="biological_sex"         value={sex} />
               <input type="hidden" name="age"                    value={age} />
               <input type="hidden" name="height_cm"              value={unitSystem === "metric" ? heightCm : ""} />
               <input type="hidden" name="weight_kg"              value={unitSystem === "metric" ? weightKg : ""} />
