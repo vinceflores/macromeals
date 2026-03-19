@@ -167,7 +167,7 @@ export default function CalendarPage() {
           </Link>
         </div>
 
-        <section className="flex flex-col gap-4 rounded-2xl border bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
+        <section className="flex flex-col gap-4 rounded-2xl border bg-background p-5 shadow-sm md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={goToPrevious}
@@ -206,7 +206,7 @@ export default function CalendarPage() {
           </div>
         ) : null}
 
-        <main className="rounded-2xl border bg-white p-5 shadow-sm">
+        <main className="rounded-2xl border bg-background p-5 shadow-sm">
           {view === "month" && (
             <MonthView
               selectedDate={selectedDate}
@@ -287,7 +287,7 @@ function MonthView({
         {weekdays.map((day) => (
           <div
             key={day}
-            className="rounded-lg bg-gray-50 py-2 text-center text-sm font-semibold text-gray-600"
+            className="rounded-lg bg-gray-50 dark:bg-background py-2 text-center text-sm font-semibold text-gray-600 dark:text-gray-300"
           >
             {day}
           </div>
@@ -306,9 +306,9 @@ function MonthView({
               className={`min-h-[100px] rounded-xl border p-3 text-left transition ${
                 date
                   ? isSelected
-                    ? "border-black bg-gray-100"
-                    : "hover:bg-gray-50"
-                  : "border-dashed bg-gray-50/50"
+                    ? "border-black bg-gray-100 dark:border-white dark:bg-gray-900"
+                  : "hover:bg-gray-50 dark:hover:bg-gray-900"
+                  : "border-dashed bg-gray-50/50 "
               }`}
             >
               {date ? (
@@ -391,7 +391,7 @@ function WeekView({
             key={day.toISOString()}
             onClick={() => onSelectDate(day)}
             className={`rounded-xl border p-4 text-left transition ${
-              isSelected ? "border-black bg-gray-100" : "hover:bg-gray-50"
+              isSelected ? "border-black bg-gray-100 dark:border-whwite dark:bg-gray-900" : "hover:bg-gray-50 dark:hover:bg-gray-900" 
             }`}
           >
             <div className="flex items-center justify-between">
@@ -504,7 +504,7 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-xl bg-gray-50 p-4">
+    <div className="rounded-xl bg-gray-50 dark:bg-gray-900 p-4">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">
         {label}
       </p>

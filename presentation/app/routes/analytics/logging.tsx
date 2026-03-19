@@ -548,13 +548,13 @@ export default function MealLoggingPage() {
                   />
                   {isSearching ? <p className="mt-1 text-xs text-muted-foreground">Searching USDA...</p> : null}
                   {!!suggestions.length ? (
-                    <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded border bg-white p-1 shadow">
+                    <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded border bg-background p-1 shadow">
                       {suggestions.map((food) => (
                         <li key={food.fdcId}>
                           <button
                             type="button"
                             onClick={() => onSelectSimpleFood(food)}
-                            className="w-full rounded px-2 py-1 text-left hover:bg-zinc-100"
+                            className="w-full rounded px-2 py-1 text-left hover:bg-zinc-100 dark:hover:bg-gray-900"
                           >
                             <p className="text-sm">{food.description}</p>
                             {food.brandOwner ? <p className="text-xs text-zinc-500">Brand: {food.brandOwner}</p> : null}

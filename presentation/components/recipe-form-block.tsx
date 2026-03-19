@@ -128,13 +128,13 @@ export default function RecipeFormBlock({
                   <p className="mt-1 text-xs text-zinc-500">Searching USDA...</p>
                 ) : null}
                 {!!rowSuggestions[row.id]?.length ? (
-                  <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded border bg-white p-1 shadow">
+                  <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded border bg-background  shadow">
                     {rowSuggestions[row.id].map((food) => (
-                      <li key={food.fdcId}>
+                      <li key={food.fdcId} className="bg-background dark:hover:bg-gray-900 p-1">
                         <button
                           type="button"
                           onClick={() => onSelectIngredientSuggestion(row.id, food)}
-                          className="w-full rounded px-2 py-1 text-left hover:bg-zinc-100"
+                          className="w-full rounded px-2 py-1 text-left hover:bg-zinc-100 dark:hover:bg-gray-900 mx-0"
                         >
                           <p className="text-sm">{food.description}</p>
                           {food.brandOwner ? (

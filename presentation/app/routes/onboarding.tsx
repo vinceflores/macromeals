@@ -46,7 +46,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // If already completed and not redoing, send them home
   if (profile.onboarding_complete && !redo) {
-    return redirect("/");
+    return redirect("/home");
   }
 
   return { profile };
@@ -105,7 +105,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const result = await res.json();
-  return redirect("/");
+  return redirect("/home");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

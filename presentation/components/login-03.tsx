@@ -14,6 +14,7 @@ export default function Login(params: LoginParams) {
   return (
     <div className="flex items-center justify-center min-h-dvh">
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
+        <Link to="/"  className="w-full text-center py-6 text-2xl font-bold">MacroMeals </Link>
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <h3 className="text-balance text-center text-lg font-semibold text-foreground dark:text-foreground">
             Welcome Back
@@ -64,16 +65,6 @@ export default function Login(params: LoginParams) {
           </Form>
           <div className="mt-6 flex flex-col items-center gap-2 text-center">
             <p className="text-sm text-muted-foreground">
-              Forgot your password?{" "}
-              <Link
-                to="/auth/reset-password"
-                className="font-medium text-primary hover:underline underline-offset-4"
-              >
-                Reset password
-              </Link>
-            </p>
-
-            <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}
               <Link
                 to="/auth/register"
@@ -82,6 +73,18 @@ export default function Login(params: LoginParams) {
                 Register Now
               </Link>
             </p>
+
+            <p className="text-xs text-muted-foreground">
+              Forgot your password?{" "}
+              <Link
+                to="/auth/reset-password"
+                className="font-medium text-shadow-xs hover:underline underline-offset-4"
+              >
+                Reset password
+              </Link>
+            </p>
+
+
           </div>
         </div>
       </div>
