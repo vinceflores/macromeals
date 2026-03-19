@@ -12,12 +12,16 @@ export default [
     route("recipes", "routes/recipes.tsx"),
     route("recipes/:id", "routes/recipe-detail.tsx"),
     route("edit/:kind/:id", "routes/edit-item.tsx"),
-    route("recipes/search/external/", "routes/recipe/search-recipe.tsx") ,
+    route("recipes/search/external/", "routes/recipe/search-recipe.tsx"),
     route("calendar", "routes/calendar.tsx"),
     route("analytics/macros", "routes/analytics/macros.tsx"),
     route("analytics/logging", "routes/analytics/logging.tsx"),
     route("analytics/logging/water", "routes/analytics/water_log.tsx"),
   ]),
+
+  // Onboarding is outside the protected layout so we can control its own
+  // redirect logic, but the route itself still requires auth (loader checks).
+  route("onboarding", "routes/onboarding.tsx"),
 
   route("auth/login", "routes/auth/login.tsx"),
   route("auth/reset-password", "routes/auth/reset-password.tsx"),
@@ -27,4 +31,3 @@ export default [
   route("auth/register", "routes/auth/register.tsx"),
   route("auth/logout", "routes/auth/logout.tsx"),
 ] satisfies RouteConfig;
-
