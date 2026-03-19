@@ -19,7 +19,7 @@ export async function loader({
     const error = session.get("error");
 
     if (session.has("access")) {
-        return redirect("/");
+        return redirect("/home");
     }
 
     return data(
@@ -82,7 +82,7 @@ export async function action({
     // session.set("userId", res.userId);
     session.set("access", res.access);
     session.set("refresh", res.refresh);
-    return redirect("/", {
+    return redirect("/home", {
         headers: {
             "Set-Cookie": await commitSession(session),
         },

@@ -7,7 +7,7 @@ import {
 
 export default [
   layout("layouts/protected_routes.tsx", [
-    index("routes/home.tsx"),
+    route("home", "routes/home.tsx"),
     route("profile", "routes/profile.tsx"),
     route("recipes", "routes/recipes.tsx"),
     route("recipes/:id", "routes/recipe-detail.tsx"),
@@ -21,6 +21,7 @@ export default [
 
   // Onboarding is outside the protected layout so we can control its own
   // redirect logic, but the route itself still requires auth (loader checks).
+  index("routes/landing.tsx" ),
   route("onboarding", "routes/onboarding.tsx"),
 
   route("auth/login", "routes/auth/login.tsx"),

@@ -11,21 +11,21 @@ export async function action({
     const session = await getSession(
         request.headers.get("Cookie"),
     );
-    return redirect("/auth/login", {
+    return redirect("/", {
         headers: {
             "Set-Cookie": await destroySession(session),
         },
     });
 }
 
-export default function LogoutRoute() {
-    return (
-        <>
-            <p>Are you sure you want to log out?</p>
-            <Form method="post">
-                <button>Logout</button>
-            </Form>
-            <Link to="/">Never mind</Link>
-        </>
-    );
-}
+// export default function LogoutRoute() {
+//     return (
+//         <>
+//             <p>Are you sure you want to log out?</p>
+//             <Form method="post">
+//                 <button>Logout</button>
+//             </Form>
+//             <Link to="/">Never mind</Link>
+//         </>
+//     );
+// }

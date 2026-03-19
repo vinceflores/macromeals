@@ -24,13 +24,13 @@ export default function AppHeader({
   return (
     <header className="border-b bg-background">
       <div className="mx-auto flex h-16 max-w-6xl items-center px-6 justify-between">
-        <Link to="/" className="font-bold text-xl tracking-tight text-primary">MacroMeals</Link>
+        <Link to="/home" className="font-bold text-xl tracking-tight text-primary">MacroMeals</Link>
 
         <div className="flex items-center space-x-4">
           {children}
           {showHome ? (
             <Link
-              to="/"
+              to="/home"
               className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
             >
               Home
