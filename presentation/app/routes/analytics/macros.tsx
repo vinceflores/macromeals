@@ -3,11 +3,11 @@ import { CaloriesStat, MacroStats, WaterStat } from "components/charts/macro-sta
 import { ArrowLeft, ArrowRight, Factory } from "lucide-react"
 import { data, Link, redirect, useLoaderData, useNavigate } from "react-router"
 import { Button } from "~/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
 import type { ChartConfig } from "~/components/ui/chart"
 import { Fetch } from "~/lib/auth.server"
 import { getSession } from "~/sessions.server"
 import { useSearchParams } from "react-router"
+import { getLocalToday } from "~/lib/date"
 
 export type Macros = {
     calories: number,
@@ -28,8 +28,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
     //get date from url - default is today
     const url = new URL(request.url);
-    const browserDate = new Date().toLocaleDateString('en-CA');
-    const date = url.searchParams.get("date") || browserDate
+    const date = url.searchParams.get("date") || getLocalToday();
 
 
     try {
@@ -136,20 +135,17 @@ export default function CurrentDayMacros() {
             </div>
             <div className="grid grid-cols-3 gap-2">
                 <CaloriesStat
-                    chartConfig={caloriesConfig}
-                    title="calories"
-                    chartData={
-                        [
-                            {
-                                calories: macrosResult.current.calories,
-                                current: macrosResult.current.calories,
-                                goal: macrosResult.goal.calories,
-                                unit: "kcal",
-                                fill: macrosResult.goal.calories > macrosResult.current.calories ? "var(--chart-2)" : "var(--chart-1)"
-                            }
-                        ]
-                    }
+                title="consumed"
+                current={macrosResult.current.calories}
+                goal={macrosResult.goal.calories}
+                color={macrosResult.goal.calories > macrosResult.current.calories ? "var(--chart-2)" : "var(--chart-1)"}
                 />
+                <CaloriesStat 
+                title="Remaining" 
+                current={Math.max(0, macrosResult.goal.calories - macrosResult.current.calories)} 
+                goal={macrosResult.goal.calories} 
+                color="var(--chart-5)" 
+                 />
                 <WaterStat
                     title="water"
                     current={macrosResult.current.water}

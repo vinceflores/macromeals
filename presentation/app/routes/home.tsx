@@ -5,11 +5,14 @@
  * completed the goals quiz yet.
  */
 
-import { Link, redirect } from "react-router";
+import { Link, redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
 import { getSession } from "~/sessions.server";
 import { Fetch } from "~/lib/auth.server";
 import { Button } from "~/components/ui/button";
+import { CaloriesStat, WaterStat } from "components/charts/macro-stats";
+import { getLocalToday } from "~/lib/date";
+
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -22,21 +25,44 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   if (!session.data.access) return redirect("/auth/login");
 
-  const res = await Fetch(
-    new Request(`${process.env.SERVER_URL}/api/accounts/profile/`),
-    session,
-  );
+  const url = new URL(request.url);
+  const today = getLocalToday();
 
-  const me = await res.json();
-  return me;
+
+  const [profileRes, macrosRes] = await Promise.all([
+    Fetch(new Request(`${process.env.SERVER_URL}/api/accounts/profile/`), session),
+    Fetch(new Request(`${process.env.SERVER_URL}/api/analytics/progress/?date=${today}`), session)
+  ]);
+
+  
+
+  const me = await profileRes.json();
+  const macros = await macrosRes.json();
+
+  return { me, macros};
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const fullName =
-    [loaderData.first_name, loaderData.last_name].filter(Boolean).join(" ") ||
-    "User";
 
-  const showOnboardingBanner = !loaderData.onboarding_complete;
+  const {me, macros} = useLoaderData<typeof loader>();
+
+
+  const fullName = [me?.first_name, me?.last_name].filter(Boolean).join(" ") || "User";
+  const showOnboardingBanner = !me?.onboarding_complete;
+
+  const consumed = macros.current.calories;
+  const goal = macros.goal.calories;
+
+  
+  const remainingValue = Math.max(0, macros.goal.calories - macros.current.calories);
+  const remainingData = [{
+    calories: remainingValue,
+    current: remainingValue,
+    goal: macros.goal.calories,
+    unit: "kcal",
+    fill: "var(--chart-1)" 
+  }];
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -59,13 +85,34 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             </Button>
           </div>
         )}
-
-        {/* ── Welcome ───────────────────────────────────────────────────── */}
+        {/* Welcome Section */}
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome, {fullName}</p>
-          <p className="text-muted-foreground">Logged in as: {loaderData.email}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-lg">Welcome, {me.first_name}!</p>
+          
+          <br></br>
+          <h2 className="text-3xl font-bold tracking-tight">Current Progress</h2>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CaloriesStat 
+          title="consumed" 
+          current={consumed} 
+          goal={goal} 
+          color={consumed > goal ? "var(--chart-1)" : "var(--chart-2)"} 
+        />
+        <CaloriesStat 
+          title="Remaining" 
+          current={remainingValue} 
+          goal={goal} 
+          color="var(--chart-5)" 
+        />
+        <WaterStat 
+          title="Water" 
+          current={macros.current.water} 
+          goal={macros.goal.water} 
+        />
+      </div>
 
       </main>
     </div>

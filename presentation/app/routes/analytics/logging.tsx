@@ -10,6 +10,7 @@ import { Fetch } from "~/lib/auth.server"
 import { searchFood, type FoodSearchResult, type RecipeListItem } from "~/lib/recipes-api"
 import { getSession } from "~/sessions.server"
 import WaterLogForm from "components/water-log-form"
+import { getLocalToday } from "~/lib/date"
 
 type MealLogIngredient = {
   name: string
@@ -93,7 +94,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!session.data.access) return redirect("/auth/login")
 
   const url = new URL(request.url);
-  const dateStr = url.searchParams.get("date") || new Date().toLocaleDateString('en-CA');
+  const dateStr = url.searchParams.get("date") || getLocalToday();
 
   try {
     const [profileRes, recipesRes, logsRes] = await Promise.all([
