@@ -88,6 +88,18 @@ function getRecipeMacros(recipe: { macros?: RecipeMacroShape }) {
   }
 }
 
+function getMealSummary(log: MealLog) {
+  if (log.ingredients?.length) {
+    // Keep the summary short so the card stays easy to scan.
+    return log.ingredients
+      .slice(0, 3)
+      .map((ingredient) => `${ingredient.name} (${ingredient.quantity}${ingredient.unit})`)
+      .join(", ")
+  }
+
+  return log.description?.trim() || "No meal details saved."
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"))
   if (!session.data.access) return redirect("/auth/login")
@@ -649,6 +661,10 @@ export default function MealLoggingPage() {
                             </Form>
                           </div>
                         </div>
+
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {getMealSummary(log)}
+                        </p>
 
                         <div className="text-xs font-medium text-muted-foreground flex gap-4 pt-2 border-t">
                           <span>P: {log.protein}g</span>
