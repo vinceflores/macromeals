@@ -9,6 +9,7 @@ import { Label } from "~/components/ui/label"
 import { Fetch } from "~/lib/auth.server"
 import { searchFood, type FoodSearchResult, type RecipeListItem } from "~/lib/recipes-api"
 import { getSession } from "~/sessions.server"
+import WaterLogForm from "components/water-log-form"
 
 type MealLogIngredient = {
   name: string
@@ -26,6 +27,7 @@ type MealLog = {
   carbohydrates: number
   fat: number
   created_at: string
+  date_logged?: string
 }
 
 type Profile = {
@@ -61,7 +63,7 @@ async function getErrorMessage(response: Response, fallback: string) {
       if (body.detail) return body.detail
       if (body.errors) return JSON.stringify(body.errors)
     } catch {
-      // Fall back to status text when JSON parsing fails.
+ 
     }
   }
   return `${fallback} (HTTP ${response.status})`
@@ -90,11 +92,14 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"))
   if (!session.data.access) return redirect("/auth/login")
 
+  const url = new URL(request.url);
+  const dateStr = url.searchParams.get("date") || new Date().toLocaleDateString('en-CA');
+
   try {
     const [profileRes, recipesRes, logsRes] = await Promise.all([
       Fetch(new Request(`${process.env.SERVER_URL}/api/accounts/profile/`), session),
       Fetch(new Request(`${process.env.SERVER_URL}/recipe/`), session),
-      Fetch(new Request(`${process.env.SERVER_URL}/api/logging/`), session),
+      Fetch(new Request(`${process.env.SERVER_URL}/api/logging/?date=${dateStr}`), session),
     ])
 
     const profile = (await profileRes.json()) as Profile
@@ -105,6 +110,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       profile,
       recipes,
       logs: (logsBody.results ?? []) as MealLog[],
+      currentDate : dateStr,
       error: undefined,
     })
   } catch (error) {
@@ -122,7 +128,10 @@ export async function action({ request }: Route.ActionArgs) {
   if (!session.data.access) return redirect("/auth/login")
 
   const form = await request.formData()
+  const mealType = String(form.get("meal_type") ?? "BREAKFAST");
   const intent = String(form.get("intent") ?? "simple")
+
+  const date = String(form.get("date"))
 
   if (intent === "delete_log") {
     const logId = Number(String(form.get("log_id") ?? "0"))
@@ -150,6 +159,7 @@ export async function action({ request }: Route.ActionArgs) {
   let payload: {
     meal_name: string
     description: string
+    date_logged: string
     servings: number
     ingredients: Array<{
       name: string
@@ -202,8 +212,9 @@ export async function action({ request }: Route.ActionArgs) {
       const factor = servingsToLog / recipeServings
 
       payload = {
-        meal_name: recipe.name,
+        meal_name: mealType,
         description: recipe.description ?? "",
+        date_logged: date,
         servings: servingsToLog,
         ingredients: (recipe.ingredients ?? []).map((ing) => ({
           name: ing.ingredient_name,
@@ -239,8 +250,9 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     payload = {
-      meal_name: itemName,
+      meal_name: mealType,
       description: "",
+      date_logged: date,
       servings: 1,
       ingredients: [
         {
@@ -345,12 +357,87 @@ export default function MealLoggingPage() {
     recipe.name.toLowerCase().includes(recipeQuery.trim().toLowerCase()),
   )
 
+  const mealType = searchParams.get("type") || "BREAKFAST"; 
+
+
+  function setMealType(type: string) {
+    const next = new URLSearchParams(searchParams);
+    next.set("type", type);
+    setSearchParams(next, { replace: true });
+  }
+
+  const { currentDate } = useLoaderData<typeof loader>();
+
+  function navigateDate(days: number) {
+    const date = new Date(currentDate + "T00:00:00"); 
+    date.setDate(date.getDate() + days);
+    
+    const localToday = new Date().toLocaleDateString('en-CA');
+    const targetDateString = date.toLocaleDateString('en-CA');
+
+    if (targetDateString > localToday) return;
+
+    const next = new URLSearchParams(searchParams);
+    next.set("date", targetDateString);
+    setSearchParams(next, { replace: true });
+  }
+
+  const isToday = currentDate === new Date().toLocaleDateString('en-CA');
+  
+
   return (
+
     <div className="flex flex-col min-h-screen">
-      <AppHeader profile={profile} />
+     
 
       <main className="mx-auto w-full max-w-5xl p-6 space-y-4">
         <h1 className="text-3xl font-semibold">Meal Logging</h1>
+
+        <div className="flex items-center justify-between bg-card border rounded-lg p-2 shadow-sm w-full">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigateDate(-1)}
+            className="px-3"
+          >
+            ←
+          </Button>
+          <span className="font-medium text-center flex-1">
+            {isToday ? "Today" : new Date(currentDate + "T00:00:00").toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric' 
+            })}
+          </span>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigateDate(1)}
+            disabled={isToday}
+            className="px-3"
+          >
+            →
+          </Button>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Which meal are you logging?</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {["BREAKFAST", "LUNCH", "DINNER", "SNACK"].map((type) => (
+              <Button
+                key={type}
+                type="button"
+                variant={mealType === type ? "default" : "outline"}
+                onClick={() => setMealType(type)}
+                className="flex-1 min-w-[100px]"
+              >
+                {type.charAt(0) + type.slice(1).toLowerCase()}
+              </Button>
+            ))}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
@@ -380,6 +467,8 @@ export default function MealLoggingPage() {
                 <Form method="post" className="space-y-3">
                   <input type="hidden" name="intent" value="recipe" />
                   <input type="hidden" name="recipe_id" value={selectedRecipeId ?? ""} />
+                  <input type="hidden" name="meal_type" value={mealType} />
+                  <input type="hidden" name="date" value={currentDate} />
                   <div>
                     <Label htmlFor="recipe_search" className="py-1">Recipe</Label>
                     <Input
@@ -444,6 +533,8 @@ export default function MealLoggingPage() {
             <CardContent>
               <Form method="post" className="space-y-3">
                 <input type="hidden" name="intent" value="simple" />
+                <input type="hidden" name="meal_type" value={mealType} />
+                <input type="hidden" name="date" value={currentDate} />
                 <div className="relative">
                   <Label htmlFor="meal_name">Item Name</Label>
                   <Input
@@ -505,35 +596,72 @@ export default function MealLoggingPage() {
         {actionData?.error ? <p className="text-sm text-red-600">{actionData.error}</p> : null}
         {actionData?.success ? <p className="text-sm text-green-600">{actionData.success}</p> : null}
 
+        <WaterLogForm currentDate={currentDate} />
+
         <Card>
           <CardHeader>
             <CardTitle>Saved Meal Logs</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-6">
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            {logs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No meals logged yet.</p>
-            ) : (
-              logs.map((log) => (
-                <div key={log.id} className="border rounded p-3">
-                  <p className="font-medium">{log.meal_name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {log.calories} kcal | P {log.protein}g | C {log.carbohydrates}g | F {log.fat}g
-                  </p>
-                  <div className="mt-2 flex gap-2">
-                    <Link to={`/edit/log/${log.id}`} className="rounded border px-3 py-1 text-sm hover:bg-accent">
-                      Edit
-                    </Link>
-                    {/* Delete is scoped to this single log only. */}
-                    <Form method="post">
-                      <input type="hidden" name="intent" value="delete_log" />
-                      <input type="hidden" name="log_id" value={log.id} />
-                      <Button type="submit" variant="outline">Remove</Button>
-                    </Form>
-                  </div>
+
+            
+            {["BREAKFAST", "LUNCH", "DINNER", "SNACK"].map((type) => {
+              const typeLogs = logs.filter((l) => {
+                if (l.meal_name !== type) return false;
+                
+               
+                const logDateValue = l.date_logged || l.created_at;
+                return logDateValue?.split("T")[0] === currentDate;
+              });
+
+              return (
+                <div key={type} className="space-y-3">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground border-b pb-1">
+                    {type}
+                  </h3>
+
+                  {typeLogs.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic px-2">No {type.toLowerCase()} logged.</p>
+                  ) : (
+                    typeLogs.map((log) => (
+                      <div key={log.id} className="border rounded-lg p-4 shadow-sm bg-card">
+                        <div className="flex justify-between items-baseline mb-2">
+                          <p className="font-semibold text-lg">{log.calories} kcal</p>
+                          
+                       
+                          <div className="flex items-baseline gap-4">
+                            <Link
+                              to={`/edit/log/${log.id}`}
+                              className="text-sm font-medium text-blue-600 hover:underline leading-none"
+                            >
+                              Edit
+                            </Link>
+                            <Form method="post" className="inline-flex items-baseline">
+                              <input type="hidden" name="intent" value="delete_log" />
+                              <input type="hidden" name="log_id" value={log.id} />
+                              <button
+                                type="submit"
+                                className="text-sm text-red-600 font-medium leading-none hover:underline bg-transparent p-0 cursor-pointer"
+                              >
+                                Remove
+                              </button>
+                            </Form>
+                          </div>
+                        </div>
+
+                        <div className="text-xs font-medium text-muted-foreground flex gap-4 pt-2 border-t">
+                          <span>P: {log.protein}g</span>
+                          <span>C: {log.carbohydrates}g</span>
+                          <span>F: {log.fat}g</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              ))
-            )}
+              );
+            })}
+            
           </CardContent>
         </Card>
       </main>

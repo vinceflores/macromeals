@@ -1,6 +1,5 @@
-import { Link, data, redirect, useLoaderData } from "react-router"
+import { Form, Link, data, redirect, useActionData, useLoaderData, useNavigation } from "react-router"
 
-import AppHeader from "../../components/app-header"
 import { Fetch } from "~/lib/auth.server"
 import type { RecipeDetail } from "~/lib/recipes-api"
 import { getSession } from "~/sessions.server"
@@ -16,6 +15,10 @@ type Profile = {
 type LoaderData = {
   profile: Profile
   recipe: RecipeDetail | null
+  error?: string
+}
+
+type ActionData = {
   error?: string
 }
 
@@ -92,14 +95,49 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 }
 
+export async function action({ request, params }: Route.ActionArgs) {
+  const session = await getSession(request.headers.get("Cookie"))
+  if (!session.data.access) return redirect("/auth/login")
+
+  const id = Number(params.id)
+  if (!Number.isInteger(id) || id < 1) {
+    return data<ActionData>({ error: "Invalid recipe ID." }, { status: 400 })
+  }
+
+  const form = await request.formData()
+  const intent = String(form.get("intent") ?? "")
+  if (intent !== "delete_recipe") {
+    return data<ActionData>({ error: "Unknown action." }, { status: 400 })
+  }
+
+  try {
+    const response = await Fetch(
+      new Request(`${process.env.SERVER_URL}/recipe/${id}/`, {
+        method: "DELETE",
+      }),
+      session,
+    )
+
+    if (!response.ok && response.status !== 204) {
+      return data<ActionData>({ error: `Failed to remove recipe. HTTP ${response.status}` }, { status: 400 })
+    }
+
+    return redirect("/recipes?tab=saved")
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to remove recipe."
+    return data<ActionData>({ error: message }, { status: 400 })
+  }
+}
+
 export default function RecipeDetailRoute() {
   const { profile, recipe, error } = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
+  const navigation = useNavigation()
   const macros = recipe ? normalizeMacros(recipe) : null
+  const isSubmitting = navigation.state === "submitting"
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <AppHeader profile={profile} />
-      <main className="mx-auto w-full max-w-3xl p-6">
+    <div className="mx-auto w-full max-w-3xl p-6">
         <Link to="/recipes?tab=saved" className="text-sm underline">
           Back to Recipes
         </Link>
@@ -113,12 +151,25 @@ export default function RecipeDetailRoute() {
           <>
             <div className="mt-4 flex items-center justify-between">
               <h1 className="text-3xl font-semibold">{recipe.name}</h1>
-              <Link to={`/edit/recipe/${recipe.id}`} className="rounded border px-3 py-2 text-sm hover:bg-accent">
-                Edit
-              </Link>
+              <div className="flex gap-2">
+                <Link to={`/edit/recipe/${recipe.id}`} className="rounded border px-3 py-2 text-sm hover:bg-accent">
+                  Edit
+                </Link>
+                <Form method="post">
+                  <input type="hidden" name="intent" value="delete_recipe" />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="rounded border px-3 py-2 text-sm hover:bg-accent disabled:opacity-60"
+                  >
+                    {isSubmitting ? "Removing..." : "Remove"}
+                  </button>
+                </Form>
+              </div>
             </div>
             <p className="mt-2 text-sm text-zinc-600">Servings: {recipe.servings}</p>
             {recipe.description ? <p className="mt-3">{recipe.description}</p> : null}
+            {actionData?.error ? <p className="mt-3 text-sm text-red-700">{actionData.error}</p> : null}
 
             <section className="mt-6 rounded border p-4">
               <h2 className="text-xl font-medium">Ingredients</h2>
@@ -144,7 +195,6 @@ export default function RecipeDetailRoute() {
             </section>
           </>
         )}
-      </main>
     </div>
   )
 }

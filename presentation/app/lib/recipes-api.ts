@@ -1,3 +1,4 @@
+
 function getApiBaseUrl() {
   // Important: route loaders/actions run on the server, so API host resolution
   // must work in both SSR (Node) and browser contexts.
@@ -113,14 +114,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T
 }
 
+// umused
 export function listRecipes() {
   return request<RecipeListItem[]>("/recipe/")
 }
 
+// umused
 export function getRecipe(recipeId: number) {
   return request<RecipeDetail>(`/recipe/${recipeId}/`)
 }
 
+// umused
 export function createRecipe(payload: CreateRecipePayload) {
   return request<RecipeDetail>("/recipe/", {
     method: "POST",
@@ -132,3 +136,21 @@ export function searchFood(query: string) {
   const q = encodeURIComponent(query.trim())
   return request<FoodSearchResponse>(`/food/search/?q=${q}`)
 }
+
+// export async function searchFoodExternal(q: string, page: number, session:Session) {
+
+//     const res = await Fetch(
+//         new Request(`${process.env.SERVER_URL}/api/external/recipe/search?q=${q || "any"}&page=${page}`, {
+//             headers: {
+//                 "Content-Type": "application/json"
+//             }
+//         }),
+//         session,
+//     )
+
+//     if(!res.ok){
+//       return []
+//     }
+//     return  await res.json()
+// }
+

@@ -39,6 +39,8 @@ services:
       - DB_PASS=${POSTGRES_PASSWORD}
       - PYTHONUNBUFFERED=1
       - USDA_API_KEY=${USDA_API_KEY}
+      - CUSTOMER_KEY=${CUSTOMER_KEY}
+      - CUSTOMER_SECRET=${CUSTOMER_SECRET}
   # presentation layer (frontend)
   frontend:
     build:
@@ -55,6 +57,7 @@ services:
       - SERVER_URL=${SERVER_URL}
       - APP_SECRET=${APP_SECRET}
       - NODE_ENV=${NODE_ENV}
+      - VITE_SERVER_URL=${VITE_SERVER_URL}
 
 volumes:
   postgres_data:

@@ -6,7 +6,7 @@ import { data, redirect } from "react-router";
 import {
     getSession,
     commitSession,
-} from "../sessions.server";
+} from "../../sessions.server";
 
 
 export async function loader({
@@ -19,7 +19,6 @@ export async function loader({
     const error = session.get("error");
 
     if (session.has("access")) {
-        // Redirect to the home page if they are already signed in.
         return redirect("/");
     }
 
@@ -45,15 +44,15 @@ async function validateCredentials(email: string, password: string) {
             },
             body: JSON.stringify({ email, password })
         })
-        if(res.status !== 200 ) {
+        if (res.status !== 200) {
             return null
         }
         const auth = await res.json()
-        return { userId: 1, ...auth }
+        return { ...auth }
     } catch (error) {
-        console.log({error})
+        console.log({ error })
         return null
-     }
+    }
 }
 
 export async function action({
@@ -70,7 +69,7 @@ export async function action({
         email as string,
         password as string,
     );
-    
+
     if (res == null) {
         session.flash("error", "Invalid email/password");
         return redirect("/auth/login", {
@@ -83,7 +82,6 @@ export async function action({
     // session.set("userId", res.userId);
     session.set("access", res.access);
     session.set("refresh", res.refresh);
-
     return redirect("/", {
         headers: {
             "Set-Cookie": await commitSession(session),
