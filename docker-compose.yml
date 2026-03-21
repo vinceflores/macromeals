@@ -58,6 +58,17 @@ services:
       - APP_SECRET=${APP_SECRET}
       - NODE_ENV=${NODE_ENV}
       - VITE_SERVER_URL=${VITE_SERVER_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SESSION_SECRET=${SESSION_SECRET}
+      # - DOMAIN=${DOMAIN} # for production
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
 
 volumes:
   postgres_data:
+  redis_data:
