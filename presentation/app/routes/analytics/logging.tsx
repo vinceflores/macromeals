@@ -610,7 +610,7 @@ export default function MealLoggingPage() {
 
         <WaterLogForm currentDate={currentDate} />
 
-        <Card>
+        <Card id="saved-meal-logs">
           <CardHeader>
             <CardTitle>Saved Meal Logs</CardTitle>
           </CardHeader>

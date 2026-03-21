@@ -149,6 +149,17 @@ function getMealSummary(log: MealLog) {
   return log.description?.trim() || "No meal details saved."
 }
 
+function getHoverPreview(logs: MealLog[]) {
+  const mealGroups = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"] as const
+
+  return mealGroups
+    .map((mealType) => ({
+      mealType,
+      logs: logs.filter((log) => log.meal_name === mealType),
+    }))
+    .filter((group) => group.logs.length > 0)
+}
+
 export function meta(_: Route.MetaArgs) {
   return [
     { title: "Calendar | MacroMeals" },
@@ -205,7 +216,6 @@ export default function CalendarPage() {
 
   const selectedDate = parseDate(currentDate)
   const view = (searchParams.get("view") as ViewMode) || "month"
-  const logDates = new Set(allLogs.map((log) => getLogDate(log)))
   const logsByDate = groupLogsByDate(allLogs)
 
   const weekChartData = getWeekChartData(selectedDate, logsByDate)
@@ -321,7 +331,7 @@ export default function CalendarPage() {
               <MonthView
                 selectedDate={selectedDate}
                 onSelectDate={setSelectedDate}
-                logDates={logDates}
+                logsByDate={logsByDate}
               />
               <div className="grid gap-4 lg:grid-cols-2">
                 <CaloriesLineChart
@@ -345,7 +355,7 @@ export default function CalendarPage() {
               <WeekView
                 selectedDate={selectedDate}
                 onSelectDate={setSelectedDate}
-                logDates={logDates}
+                logsByDate={logsByDate}
               />
               <div className="grid gap-4 lg:grid-cols-2">
                 <CaloriesLineChart
@@ -399,11 +409,11 @@ function ViewTab({
 function MonthView({
   selectedDate,
   onSelectDate,
-  logDates,
+  logsByDate,
 }: {
   selectedDate: Date
   onSelectDate: (date: Date) => void
-  logDates: Set<string>
+  logsByDate: Record<string, MealLog[]>
 }) {
   const year = selectedDate.getFullYear()
   const month = selectedDate.getMonth()
@@ -436,13 +446,25 @@ function MonthView({
       <div className="grid grid-cols-7 gap-2">
         {cells.map((date, index) => {
           const isSelected = date ? sameDay(date, selectedDate) : false
-          const hasLogs = date ? logDates.has(formatDateKey(date)) : false
+          const dayKey = date ? formatDateKey(date) : ""
+          const dayLogs = date ? logsByDate[dayKey] ?? [] : []
+          const hasLogs = dayLogs.length > 0
+          const hoverPreview = getHoverPreview(dayLogs)
 
           return (
             <button
               key={index}
               onClick={() => date && onSelectDate(date)}
-              className={`min-h-[100px] rounded-xl border p-3 text-left transition ${
+              title={
+                hasLogs
+                  ? hoverPreview
+                      .map((group) =>
+                        `${group.mealType}: ${group.logs.map((log) => getMealSummary(log)).join(", ")}`
+                      )
+                      .join("\n")
+                  : "No meals logged"
+              }
+              className={`group relative min-h-[100px] rounded-xl border p-3 text-left transition ${
                 date
                   ? isSelected
                     ? "border-black bg-gray-100"
@@ -459,6 +481,23 @@ function MonthView({
                   <span className="text-xs text-gray-400">
                     {hasLogs ? "Meals logged" : "No meals"}
                   </span>
+                  {hasLogs ? (
+                    <div className="pointer-events-none absolute left-2 top-full z-20 hidden w-64 rounded-lg border bg-white p-3 text-xs shadow-lg group-hover:block">
+                      <p className="mb-2 font-semibold text-foreground">Meals logged</p>
+                      <div className="space-y-2 text-muted-foreground">
+                        {hoverPreview.map((group) => (
+                          <div key={group.mealType}>
+                            <p className="font-medium text-foreground">{group.mealType}</p>
+                            <div className="space-y-1">
+                              {group.logs.map((log) => (
+                                <p key={log.id}>{getMealSummary(log)}</p>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </button>
@@ -472,11 +511,11 @@ function MonthView({
 function WeekView({
   selectedDate,
   onSelectDate,
-  logDates,
+  logsByDate,
 }: {
   selectedDate: Date
   onSelectDate: (date: Date) => void
-  logDates: Set<string>
+  logsByDate: Record<string, MealLog[]>
 }) {
   const start = new Date(selectedDate)
   start.setDate(selectedDate.getDate() - selectedDate.getDay())
@@ -491,13 +530,24 @@ function WeekView({
     <div className="grid gap-4 md:grid-cols-7">
       {days.map((day) => {
         const isSelected = sameDay(day, selectedDate)
-        const hasLogs = logDates.has(formatDateKey(day))
+        const dayLogs = logsByDate[formatDateKey(day)] ?? []
+        const hasLogs = dayLogs.length > 0
+        const hoverPreview = getHoverPreview(dayLogs)
 
         return (
           <button
             key={day.toISOString()}
             onClick={() => onSelectDate(day)}
-            className={`rounded-xl border p-4 text-left transition ${
+            title={
+              hasLogs
+                ? hoverPreview
+                    .map((group) =>
+                      `${group.mealType}: ${group.logs.map((log) => getMealSummary(log)).join(", ")}`
+                    )
+                    .join("\n")
+                : "No meals logged"
+            }
+            className={`group relative rounded-xl border p-4 text-left transition ${
               isSelected ? "border-black bg-gray-100" : "hover:bg-gray-50"
             }`}
           >
@@ -512,6 +562,23 @@ function WeekView({
             <div className="mt-4 text-xs text-gray-400">
               {hasLogs ? "Meals logged" : "No meals"}
             </div>
+            {hasLogs ? (
+              <div className="pointer-events-none absolute left-2 top-full z-20 hidden w-64 rounded-lg border bg-white p-3 text-xs shadow-lg group-hover:block">
+                <p className="mb-2 font-semibold text-foreground">Meals logged</p>
+                <div className="space-y-2 text-muted-foreground">
+                  {hoverPreview.map((group) => (
+                    <div key={group.mealType}>
+                      <p className="font-medium text-foreground">{group.mealType}</p>
+                      <div className="space-y-1">
+                        {group.logs.map((log) => (
+                          <p key={log.id}>{getMealSummary(log)}</p>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </button>
         )
       })}
@@ -543,17 +610,28 @@ function DayView({
   return (
     <div className="space-y-4">
       <div className="rounded-xl border p-4">
-        <h3 className="text-lg font-semibold">
-          {selectedDate.toLocaleDateString("en-CA", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Meals and progress for this day.
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">
+              {selectedDate.toLocaleDateString("en-CA", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Meals and progress for this day.
+            </p>
+          </div>
+
+          <Link
+            to={`/analytics/logging?date=${formatDateKey(selectedDate)}#saved-meal-logs`}
+            className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-accent"
+          >
+            Edit Meals
+          </Link>
+        </div>
       </div>
 
       {progress ? (
