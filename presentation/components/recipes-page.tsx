@@ -179,6 +179,7 @@ export default function RecipesPage({
                   className="mt-1 w-32 rounded border px-3 py-2"
                 />
               </div>
+    
               <div>
                 <p className="block text-sm font-medium">Ingredients</p>
                 <div className="mt-2 space-y-2">

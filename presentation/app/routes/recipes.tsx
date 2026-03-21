@@ -112,6 +112,7 @@ export async function action({ request }: Route.ActionArgs) {
   const name = String(form.get("name") ?? "").trim()
   const description = String(form.get("description") ?? "").trim()
   const servingsRaw = String(form.get("servings") ?? "1").trim()
+  const recipe_image = String(form.get("recipe_image"))
   const ingredientNames = form.getAll("ingredient_name").map((v) => String(v ?? "").trim())
   const ingredientQuantities = form.getAll("ingredient_quantity").map((v) => String(v ?? "").trim())
   const ingredientUnits = form.getAll("ingredient_unit").map((v) => String(v ?? "").trim())
@@ -186,6 +187,7 @@ export async function action({ request }: Route.ActionArgs) {
           description,
           servings,
           ingredients: parsedIngredients,
+          recipe_image
         } satisfies CreateRecipePayload),
       }),
       session,
@@ -221,6 +223,7 @@ export default function RecipesRoute() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [servings, setServings] = useState("1");
+  const [recipe_image, setRecipeImage] = useState("")
   const [ingredientRows, setIngredientRows] = useState<
     RecipeFormIngredientRow[]
   >([
@@ -397,6 +400,7 @@ export default function RecipesRoute() {
                 name={name}
                 description={description}
                 servings={servings}
+                recipe_image={recipe_image}
                 submitLabel="Create Recipe"
                 isSubmitting={isSubmitting}
                 rowSuggestions={rowSuggestions}
@@ -405,6 +409,7 @@ export default function RecipesRoute() {
                 onNameChange={setName}
                 onDescriptionChange={setDescription}
                 onServingsChange={setServings}
+                onRecipeImageChange={setRecipeImage}
                 onSetRowValue={setRowValue}
                 onIngredientNameChange={onIngredientNameChange}
                 onSelectIngredientSuggestion={onSelectIngredientSuggestion}

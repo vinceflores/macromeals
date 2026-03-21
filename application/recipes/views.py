@@ -85,6 +85,7 @@ class RecipeListCreateView(APIView):
             name=data["name"],
             description=data.get("description", ""),
             servings=data["servings"],
+            recipe_image=data["recipe_image"]
         )
 
         for item in data["ingredients"]:
