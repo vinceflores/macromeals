@@ -27,7 +27,7 @@ export default function WaterForm({
   }, [fetcher.state, isSuccess]);
 
   return (
-    <Card className="w-full border-none shadow-md bg-card/50">
+    <Card className="w-full border bg-card shadow-sm">
       <CardHeader>
         <CardTitle>Log Water</CardTitle>
       </CardHeader>
@@ -57,7 +57,7 @@ export default function WaterForm({
               disabled={isLogging}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="w-full bg-background/50 border-muted"
+              className="w-full bg-muted/30 border-border focus-visible:ring-primary"
             />
           </div>
 
@@ -65,19 +65,19 @@ export default function WaterForm({
             type="submit"
             variant="default"
             disabled={isLogging || !hasValidInput}
-            className="w-full"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             {isLogging ? "Logging..." : "Log Water"}
           </Button>
 
-          <div className="min-h-[20px] flex justify-center mt-2">
+          <div className="min-h-[24px] flex justify-center mt-2">
             {isSuccess && (
               <p className="text-sm text-green-500 font-medium animate-in fade-in slide-in-from-top-1">
                 Water logged successfully!
               </p>
             )}
             {fetcher.data?.error && (
-              <p className="text-sm text-red-500 font-medium">
+              <p className="text-sm text-destructive font-medium">
                 {fetcher.data.error}
               </p>
             )}

@@ -56,32 +56,46 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
                 </p>
               ) : (
                 typeLogs.map((log) => {
-                  const displayName =
-                    log.ingredients?.[0]?.name ||
-                    log.description ||
-                    "Unnamed Meal";
+                  const ingredient = log.ingredients?.[0];
+                  const rawName =
+                    ingredient?.name || log.description || "Unnamed Meal";
+
+                  const displayName = rawName
+                    .toLowerCase()
+                    .split(" ")
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ");
 
                   return (
                     <div
                       key={log.id}
                       className="border rounded-lg p-4 shadow-sm bg-card"
                     >
-                      <div className="flex justify-between items-baseline mb-2">
-                        <p className="font-semibold text-lg capitalize tracking-tight">
-                          {displayName}
-                        </p>
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="space-y-1">
+                          <p className="font-semibold text-lg tracking-tight leading-none">
+                            {displayName}
+                          </p>
 
-                        <div className="flex items-baseline gap-4">
+                          {ingredient && (
+                            <p className="text-xs text-muted-foreground">
+                              {ingredient.quantity}
+                              {ingredient.unit.toLowerCase()}{" "}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-4">
                           <Link
                             to={`/edit/log/${log.id}`}
-                            className="text-sm font-medium text-blue-600 hover:underline leading-none"
+                            className="text-sm font-medium text-blue-600 hover:underline"
                           >
                             Edit
                           </Link>
                           <Form
                             method="post"
                             action="/analytics/logging"
-                            className="inline-flex items-baseline"
+                            className="inline-flex"
                           >
                             <input
                               type="hidden"
@@ -91,7 +105,7 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
                             <input type="hidden" name="log_id" value={log.id} />
                             <button
                               type="submit"
-                              className="text-sm text-red-600 font-medium leading-none hover:underline bg-transparent p-0 cursor-pointer"
+                              className="text-sm text-red-600 font-medium hover:underline bg-transparent p-0 cursor-pointer"
                             >
                               Remove
                             </button>

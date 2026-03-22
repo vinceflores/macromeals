@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router";
-import { format } from "date-fns";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar as CalendarIcon,
-} from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import {
@@ -50,28 +45,55 @@ export function DateNavigation({ currentDate }: DateNavigationProps) {
     updateDate(date.toLocaleDateString("en-CA"));
   }
 
+  function goToToday() {
+    updateDate(localToday);
+  }
+
   return (
-    <div className="flex items-center justify-between bg-card border rounded-lg p-1 shadow-sm w-full">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => navigateDays(-1)}
-        className="h-8 w-8"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
+    <section className="flex flex-col gap-4 rounded-2xl border bg-card p-5 shadow-sm md:flex-row md:items-center md:justify-between w-full">
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          variant="outline"
+          onClick={() => navigateDays(-1)}
+          className="rounded-xl border bg-background px-4 py-2 text-sm font-medium hover:bg-accent transition-colors h-10"
+        >
+          Previous
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={goToToday}
+          className="rounded-xl border bg-background px-4 py-2 text-sm font-medium hover:bg-accent transition-colors h-10"
+        >
+          Today
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={() => navigateDays(1)}
+          disabled={isToday}
+          className="rounded-xl border bg-background px-4 py-2 text-sm font-medium hover:bg-accent transition-colors h-10 disabled:opacity-50"
+        >
+          Next
+        </Button>
+      </div>
 
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            className="flex-1 font-medium text-sm hover:bg-accent/50 h-8 gap-2"
-          >
-            <CalendarIcon className="h-3.5 w-3.5 opacity-50" />
+          <button className="text-lg font-semibold hover:text-primary transition-colors flex items-center gap-2 outline-none">
+            <CalendarIcon className="h-5 w-5 opacity-50" />
             {isToday
               ? "Today"
-              : format(new Date(currentDate + "T00:00:00"), "MMM d, yyyy")}
-          </Button>
+              : new Date(currentDate + "T00:00:00").toLocaleDateString(
+                  "en-CA",
+                  {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  },
+                )}
+          </button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="center">
           <Calendar
@@ -84,22 +106,15 @@ export function DateNavigation({ currentDate }: DateNavigationProps) {
               }
             }}
             disabled={(date) =>
-              date > new Date() || date < new Date("2020-01-01")
+              date > new Date(localToday + "T00:00:00") ||
+              date < new Date("2020-01-01")
             }
             initialFocus
           />
         </PopoverContent>
       </Popover>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => navigateDays(1)}
-        disabled={isToday}
-        className="h-8 w-8"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-    </div>
+      <div className="hidden md:block w-[200px]" />
+    </section>
   );
 }
