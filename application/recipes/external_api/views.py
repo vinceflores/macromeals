@@ -27,31 +27,37 @@ class RecipeAPISearchView(RecipeAPIView):
 
         try:
             # 1. Fetch from FatSecret
-            recipes = self.api.client.recipes_search(
-                search_expression=q, 
+            # recipes = self.api.client.recipes_search(
+            #     search_expression=q, 
+            #     page_number=page, 
+            #     max_results=10
+            # )
+            res = self.api.search_recipes(
+                query=q, 
                 page_number=page, 
                 max_results=10
             )
-
             # 2. Handle empty results
-            if not recipes:
+            if not res.get('recipes'):
                 return Response({"recipes": []})
 
             dto = []
-            for r in recipes:
+            for r in res.get('recipes'):
                 # 3. Use .get() to avoid KeyError if nutrition is missing
                 nutrition = r.get('recipe_nutrition', {})
                 
                 recipe_dto = {
+                    'id': r.get('recipe_id'),
+                    'name': r.get('recipe_name', 'Unknown Recipe'),
+                    'description': r.get('recipe_description', ''),
+                    "recipe_image": r.get("recipe_image"),
                     'macros': {
                         'calories': nutrition.get('calories', '0'),
                         'carbohydrate': nutrition.get('carbohydrate', '0'),
                         'fat': nutrition.get('fat', '0'),
                         'protein': nutrition.get('protein', '0'),
                     },
-                    'name': r.get('recipe_name', 'Unknown Recipe'),
-                    'description': r.get('recipe_description', ''),
-                    'id': r.get('recipe_id'),
+                    'recipe_ingredients': r.get("recipe_ingredients")
                 }
                 dto.append(recipe_dto)
 

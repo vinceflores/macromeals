@@ -138,63 +138,69 @@ export default function RecipeDetailRoute() {
 
   return (
     <div className="mx-auto w-full max-w-3xl p-6">
-        <Link to="/recipes?tab=saved" className="text-sm underline">
-          Back to Recipes
-        </Link>
+      <Link to="/recipes?tab=saved" className="text-sm underline">
+        Back to Recipes
+      </Link>
 
-        {!recipe || error || !macros ? (
-          <>
-            <h1 className="mt-4 text-2xl font-semibold">Recipe not available</h1>
-            <p className="mt-2 text-sm text-red-700">{error ?? "Unknown error."}</p>
-          </>
-        ) : (
-          <>
-            <div className="mt-4 flex items-center justify-between">
-              <h1 className="text-3xl font-semibold">{recipe.name}</h1>
-              <div className="flex gap-2">
-                <Link to={`/edit/recipe/${recipe.id}`} className="rounded border px-3 py-2 text-sm hover:bg-accent">
-                  Edit
-                </Link>
-                <Form method="post">
-                  <input type="hidden" name="intent" value="delete_recipe" />
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="rounded border px-3 py-2 text-sm hover:bg-accent disabled:opacity-60"
-                  >
-                    {isSubmitting ? "Removing..." : "Remove"}
-                  </button>
-                </Form>
-              </div>
+      {!recipe || error || !macros ? (
+        <>
+          <h1 className="mt-4 text-2xl font-semibold">Recipe not available</h1>
+          <p className="mt-2 text-sm text-red-700">{error ?? "Unknown error."}</p>
+        </>
+      ) : (
+        <>
+          {
+            recipe.recipe_image &&
+            <img src={recipe.recipe_image} alt={recipe.name} className="w-full h-64 my-2 aspect-video object-cover" />
+          }
+          <div className="mt-4 flex items-center justify-between">
+
+            <h1 className="text-3xl font-semibold">{recipe.name}</h1>
+            <div className="flex gap-2">
+              <Link to={`/edit/recipe/${recipe.id}`} className="rounded border px-3 py-2 text-sm hover:bg-accent">
+                Edit
+              </Link>
+              <Form method="post">
+                <input type="hidden" name="intent" value="delete_recipe" />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="rounded border px-3 py-2 text-sm hover:bg-accent disabled:opacity-60"
+                >
+                  {isSubmitting ? "Removing..." : "Remove"}
+                </button>
+              </Form>
             </div>
-            <p className="mt-2 text-sm text-zinc-600">Servings: {recipe.servings}</p>
-            {recipe.description ? <p className="mt-3">{recipe.description}</p> : null}
-            {actionData?.error ? <p className="mt-3 text-sm text-red-700">{actionData.error}</p> : null}
+          </div>
+          <p className="mt-2 text-sm text-zinc-600">Servings: {recipe.servings}</p>
 
-            <section className="mt-6 rounded border p-4">
-              <h2 className="text-xl font-medium">Ingredients</h2>
-              <ul className="mt-3 space-y-2">
-                {recipe.ingredients.map((ingredient, index) => (
-                  <li key={`${ingredient.ingredient_name}-${index}`} className="text-sm">
-                    {ingredient.ingredient_name}: {ingredient.quantity} {ingredient.unit}
-                  </li>
-                ))}
-              </ul>
-            </section>
+          {recipe.description ? <p className="mt-3">{recipe.description}</p> : null}
+          {actionData?.error ? <p className="mt-3 text-sm text-red-700">{actionData.error}</p> : null}
 
-            <section className="mt-6 rounded border p-4">
-              <h2 className="text-xl font-medium">Macros</h2>
-              <p className="mt-2 text-sm">
-                Total: {macros.total.calories} kcal | P {macros.total.protein}g | C{" "}
-                {macros.total.carbs}g | F {macros.total.fat}g
-              </p>
-              <p className="mt-1 text-sm">
-                Per serving: {macros.perServing.calories} kcal | P {macros.perServing.protein}g | C{" "}
-                {macros.perServing.carbs}g | F {macros.perServing.fat}g
-              </p>
-            </section>
-          </>
-        )}
+          <section className="mt-6 rounded border p-4">
+            <h2 className="text-xl font-medium">Ingredients</h2>
+            <ul className="mt-3 space-y-2">
+              {recipe.ingredients.map((ingredient, index) => (
+                <li key={`${ingredient.ingredient_name}-${index}`} className="text-sm">
+                  {ingredient.ingredient_name}: {ingredient.quantity} {ingredient.unit}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="mt-6 rounded border p-4">
+            <h2 className="text-xl font-medium">Macros</h2>
+            <p className="mt-2 text-sm">
+              Total: {macros.total.calories} kcal | P {macros.total.protein}g | C{" "}
+              {macros.total.carbs}g | F {macros.total.fat}g
+            </p>
+            <p className="mt-1 text-sm">
+              Per serving: {macros.perServing.calories} kcal | P {macros.perServing.protein}g | C{" "}
+              {macros.perServing.carbs}g | F {macros.perServing.fat}g
+            </p>
+          </section>
+        </>
+      )}
     </div>
   )
 }

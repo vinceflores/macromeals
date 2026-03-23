@@ -24,6 +24,7 @@ type LoaderData = {
   description: string
   servings: string
   ingredients: RecipeFormIngredientRow[]
+  recipe_image?: string
 }
 
 type ActionData = {
@@ -71,6 +72,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         name: string
         description?: string
         servings?: number
+        recipe_image?: string
         ingredients?: Array<{
           ingredient_name: string
           quantity: number
@@ -89,6 +91,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         name: recipe.name,
         description: recipe.description ?? "",
         servings: String(recipe.servings ?? 1),
+        recipe_image: String(recipe.recipe_image ?? ""),
         ingredients: (recipe.ingredients ?? []).map((ing, index) => ({
           id: index + 1,
           name: ing.ingredient_name,
@@ -134,11 +137,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     const fallbackPer100 =
       totalQty > 0
         ? {
-            calories: ((log.calories ?? 0) * 100) / totalQty,
-            protein: ((log.protein ?? 0) * 100) / totalQty,
-            carbs: ((log.carbohydrates ?? 0) * 100) / totalQty,
-            fat: ((log.fat ?? 0) * 100) / totalQty,
-          }
+          calories: ((log.calories ?? 0) * 100) / totalQty,
+          protein: ((log.protein ?? 0) * 100) / totalQty,
+          carbs: ((log.carbohydrates ?? 0) * 100) / totalQty,
+          fat: ((log.fat ?? 0) * 100) / totalQty,
+        }
         : { calories: 0, protein: 0, carbs: 0, fat: 0 }
 
     return data<LoaderData>({
@@ -280,18 +283,19 @@ export default function EditItemRoute() {
   const [name, setName] = useState(loaderData.name)
   const [description, setDescription] = useState(loaderData.description)
   const [servings, setServings] = useState(loaderData.servings)
+  const [recipe_image, setRecipeImage] = useState(loaderData.recipe_image)
   const [ingredientRows, setIngredientRows] = useState<RecipeFormIngredientRow[]>(
     loaderData.ingredients.length
       ? loaderData.ingredients
       : [
-          {
-            id: 1,
-            name: "",
-            quantity: "",
-            unit: "g",
-            macros: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-          },
-        ],
+        {
+          id: 1,
+          name: "",
+          quantity: "",
+          unit: "g",
+          macros: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+        },
+      ],
   )
   const [nextRowId, setNextRowId] = useState(2)
   const [rowSuggestions, setRowSuggestions] = useState<Record<number, FoodSearchResult[]>>({})
@@ -348,15 +352,15 @@ export default function EditItemRoute() {
       prev.map((row) =>
         row.id === rowId
           ? {
-              ...row,
-              name: food.description ?? "",
-              macros: {
-                calories: food.macros.calories,
-                protein: food.macros.protein,
-                carbs: food.macros.carbs,
-                fat: food.macros.fat,
-              },
-            }
+            ...row,
+            name: food.description ?? "",
+            macros: {
+              calories: food.macros.calories,
+              protein: food.macros.protein,
+              carbs: food.macros.carbs,
+              fat: food.macros.fat,
+            },
+          }
           : row,
       ),
     )
@@ -367,45 +371,47 @@ export default function EditItemRoute() {
 
   return (
     <div className="mx-auto w-full max-w-4xl p-6">
-        <Link to={backTo} className="text-sm underline">Back</Link>
+      <Link to={backTo} className="text-sm underline">Back</Link>
 
-        {loaderData.error ? (
-          <>
-            <h1 className="mt-4 text-3xl font-semibold">Edit Item</h1>
-            <p className="mt-2 text-sm text-red-700">{loaderData.error}</p>
-          </>
-        ) : (
-          <>
-            <h1 className="mt-4 text-3xl font-semibold">
-              Edit {loaderData.kind === "recipe" ? "Recipe" : "Meal Log"}
-            </h1>
+      {loaderData.error ? (
+        <>
+          <h1 className="mt-4 text-3xl font-semibold">Edit Item</h1>
+          <p className="mt-2 text-sm text-red-700">{loaderData.error}</p>
+        </>
+      ) : (
+        <>
+          <h1 className="mt-4 text-3xl font-semibold">
+            Edit {loaderData.kind === "recipe" ? "Recipe" : "Meal Log"}
+          </h1>
 
-            <div className="mt-4">
-              {/* Shared recipe-style form keeps create and edit cohesive. */}
-              <RecipeFormBlock
-                name={name}
-                description={description}
-                servings={servings}
-                servingsDisabled={loaderData.kind === "recipe"}
-                submitLabel="Save Changes"
-                isSubmitting={isSubmitting}
-                rowSuggestions={rowSuggestions}
-                rowSearchLoading={rowSearchLoading}
-                ingredientRows={ingredientRows}
-                onNameChange={setName}
-                onDescriptionChange={setDescription}
-                onServingsChange={setServings}
-                onSetRowValue={setRowValue}
-                onIngredientNameChange={onIngredientNameChange}
-                onSelectIngredientSuggestion={onSelectIngredientSuggestion}
-                onRemoveIngredientRow={removeIngredientRow}
-                onAddIngredientRow={addIngredientRow}
-              />
-            </div>
+          <div className="mt-4">
+            {/* Shared recipe-style form keeps create and edit cohesive. */}
+            <RecipeFormBlock
+              name={name}
+              description={description}
+              servings={servings}
+              recipe_image={recipe_image as string}
+              servingsDisabled={loaderData.kind === "recipe"}
+              submitLabel="Save Changes"
+              isSubmitting={isSubmitting}
+              rowSuggestions={rowSuggestions}
+              rowSearchLoading={rowSearchLoading}
+              ingredientRows={ingredientRows}
+              onNameChange={setName}
+              onDescriptionChange={setDescription}
+              onServingsChange={setServings}
+              onRecipeImageChange={setRecipeImage}
+              onSetRowValue={setRowValue}
+              onIngredientNameChange={onIngredientNameChange}
+              onSelectIngredientSuggestion={onSelectIngredientSuggestion}
+              onRemoveIngredientRow={removeIngredientRow}
+              onAddIngredientRow={addIngredientRow}
+            />
+          </div>
 
-            {actionData?.error ? <p className="mt-3 text-sm text-red-700">{actionData.error}</p> : null}
-          </>
-        )}
+          {actionData?.error ? <p className="mt-3 text-sm text-red-700">{actionData.error}</p> : null}
+        </>
+      )}
     </div>
   )
 }

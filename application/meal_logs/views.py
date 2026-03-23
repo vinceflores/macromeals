@@ -6,6 +6,11 @@ from .serializers import WaterLogSerializer
 from .models import MealLog
 from .serializers import MealLogCreateSerializer, MealLogSerializer
 from django.utils import timezone
+from django.db.models import Sum
+from datetime import timedelta
+from django.utils import timezone
+from meal_logs.models import WaterLog
+from rest_framework.decorators import action
 
 def _compute_macros_from_ingredients(ingredients):
     totals = {"calories": 0.0, "protein": 0.0, "carbohydrates": 0.0, "fat": 0.0}
@@ -146,3 +151,21 @@ class WaterLogView(APIView):
         water = serializer.save(user = request.user, date_logged = date_logged)
         return Response(status=status.HTTP_201_CREATED)
 
+class WaterTrendView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        end_date = timezone.now().date()
+        start_date = end_date - timedelta(days=60)
+        
+        stats = (
+            WaterLog.objects.filter(
+                user=request.user, 
+                date_logged__range=[start_date, end_date]
+            )
+            .values('date_logged')
+            .annotate(water=Sum('water')) 
+            .order_by('date_logged')
+        )
+        
+        return Response(list(stats))

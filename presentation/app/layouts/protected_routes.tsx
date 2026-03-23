@@ -27,56 +27,89 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function ProtectedRoutesLayout({ loaderData }: Route.ComponentProps) {
     const [searchParams] = useSearchParams();
-    
+
     const localToday = new Date().toLocaleDateString('en-CA');
     const currentDate = searchParams.get("date") || localToday;
+    const links = [
+        {
+            to: "/recipes/search/external/",
+            label: "Browse Recipes"
+        },
+        {
+            to: "/recipes",
+            label: "My Recipes"
+        },
+        {
+            to: "/calendar",
+            label: "Open Calendar",
+        },
+        {
+            to: `/analytics/macros?date=${currentDate}`,
+            label: "Daily Progress"
+        },
+        {
+            to: `/analytics/logging?mode=recipe&date=${currentDate}`,
+            label: "Meal Logging"
+        }
+        
+    ]
+return (
+    <>
+        <AppHeader
+            profile={{
+                email: loaderData.email,
+                first_name: loaderData.first_name,
+                last_name: loaderData.last_name,
+            }}
+            showHome={false}
+        >
+            {/* <Link
+                to="/recipes/search/external/"
+                className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+            >Browse Recipes
+            </Link>
 
-    return (
-        <>
-            <AppHeader
-                profile={{
-                    email: loaderData.email,
-                    first_name: loaderData.first_name,
-                    last_name: loaderData.last_name,
-                }}
-                showHome={false}
+            <Link
+                to="/recipes"
+                className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
             >
-                <Link 
-                    to="/recipes/search/external/"
-                    className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
-                    >Browse Recipes
-                </Link>
+                My Recipes
+            </Link>
 
-                <Link
-                    to="/recipes"
-                    className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
-                >
-                    My Recipes
-                </Link>
-
-                <Link
+            <Link
                 to="/calendar"
                 className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
-                >
+            >
                 Open Calendar
-                </Link>
+            </Link>
 
-                <Link
-                    to={`/analytics/macros?date=${currentDate}`}
-                    className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
-                >
-                    Daily Progress
-                </Link>
-                <Link
-                    to={`/analytics/logging?mode=recipe&date=${currentDate}`}
-                    className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
-                >
-                    Meal Logging
-                </Link>
-            </AppHeader>
-            <Outlet />
-        </>
-    );
+            <Link
+                to={`/analytics/macros?date=${currentDate}`}
+                className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+            >
+                Daily Progress
+            </Link>
+            <Link
+                to={`/analytics/logging?mode=recipe&date=${currentDate}`}
+                className="rounded border px-4 py-2 text-sm font-medium hover:bg-accent"
+            >
+                Meal Logging
+            </Link> */}
+            {
+                links.map((i, k) => (
+                    <Link
+                        key={k}
+                        to={i.to}
+                        className=" px-4 py-2 text-sm font-medium hover:text-green-500 "
+                    >
+                        {i.label}
+                    </Link>
+                ))
+            }
+        </AppHeader>
+        <Outlet />
+    </>
+);
 }
 
 // function ProtectedRouteProvider({ children }: { children: React.ReactNode }) {

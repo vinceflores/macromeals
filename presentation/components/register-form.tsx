@@ -1,6 +1,6 @@
 "use client";
 
-import { Form } from "react-router";
+import { Form, Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -13,6 +13,7 @@ export default function RegisterForm({ action }: RegisterParams) {
   return (
     <div className="flex items-center justify-center min-h-dvh">
       <div className="flex flex-1 flex-col justify-center px-4 py-10 lg:px-6">
+      <Link to="/" className="w-full text-center py-6 text-2xl font-bold">MacroMeals </Link>
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <h3 className="text-balance text-center text-lg font-semibold text-foreground dark:text-foreground">
             Create an Account
