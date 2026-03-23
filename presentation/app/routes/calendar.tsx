@@ -387,7 +387,7 @@ export default function CalendarPage() {
           </div>
 
           <Link
-            to="/"
+            to="/home"
             className="rounded border bg-card px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
           >
             Back to Dashboard
