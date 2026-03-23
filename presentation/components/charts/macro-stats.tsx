@@ -29,6 +29,11 @@ import {
     type ChartConfig,
 } from "~/components/ui/chart"
 
+const DEFAULT_CALORIES_CONFIG = {
+    calories: {label: "calories", color: "var(--chart-2)"},
+} satisfies ChartConfig
+
+
 export const description = "A radial chart with text"
 
 // const chartData = [
@@ -47,33 +52,52 @@ export type ProgressStatProps = {
     title: string,
 }
 
-export function CaloriesStat(props: ProgressStatProps) {
+export function CaloriesStat({ 
+    title, 
+    current, 
+    goal, 
+    unit = "kcal", 
+    color = "var(--chart-2)" 
+}: {
+    title: string,
+    current: number,
+    goal: number,
+    unit?: string,
+    color?: string
+}) {
     const [angles, setAngles] = useState({
-        startAngle: 0,
-        endAngle: 0,
+        startAngle: 90,
+        endAngle: 90,
     })
-    const data = props.chartData[0]
+
+    const chartData = [{
+        calories: current,
+        current: current,
+        goal: goal,
+        unit: unit,
+        fill: color
+    }];
+
+    const data = chartData[0];
 
     useEffect(() => {
         const startAngle = 90
-        const endAngle = 90 - 360 * data.current / data.goal
-        setAngles({
-            startAngle, endAngle
-        })
+        const endAngle = 90 - 360 * (data.current / data.goal)
+        setAngles({ startAngle, endAngle })
     }, [data.goal, data.current])
 
     return (
-        <Card className="flex col-span-2">
+        <Card className="flex flex-1 flex-col">
             <CardHeader className="items-center pb-0">
-                <CardTitle className="capitalize">{props.title}</CardTitle>
+                <CardTitle className="capitalize">{title}</CardTitle>
             </CardHeader>
-            <CardContent className="">
+            <CardContent className="pb-0">
                 <ChartContainer
-                    config={props.chartConfig}
+                    config={DEFAULT_CALORIES_CONFIG}
                     className="mx-auto aspect-square max-h-[250px]"
                 >
                     <RadialBarChart
-                        data={props.chartData}
+                        data={chartData}
                         startAngle={angles.startAngle}
                         endAngle={angles.endAngle}
                         innerRadius={80}
@@ -86,45 +110,51 @@ export function CaloriesStat(props: ProgressStatProps) {
                             className="first:fill-muted last:fill-background"
                             polarRadius={[86, 74]}
                         />
-                        <RadialBar dataKey={props.title} background cornerRadius={10} />
+                        <RadialBar dataKey="current" background cornerRadius={10} />
                         <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
                             <Label
-                                content={({ viewBox }) => {
-                                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                                        return (
-                                            <text
-                                                x={viewBox.cx}
-                                                y={viewBox.cy}
-                                                textAnchor="middle"
-                                                dominantBaseline="middle"
-                                            >
-                                                <tspan
-                                                    x={viewBox.cx}
-                                                    y={viewBox.cy}
-                                                    className="fill-foreground text-4xl font-bold"
-                                                >
-                                                    {data.goal > data.current ? data.current : data.current - data.goal}
-                                                </tspan>
-                                                <tspan
-                                                    x={viewBox.cx}
-                                                    y={(viewBox.cy || 0) + 24}
-                                                    className="fill-muted-foreground"
-                                                >
-                                                    {data.unit}
-                                                </tspan>
-                                            </text>
-                                        )
-                                    }
-                                }}
+                            content={({ viewBox }) => {
+                                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                const isRemainingChart = title.toLowerCase() === "remaining";
+                                const isOverGoal = data.current > data.goal;
+                                
+                                let displayValue;
+                                if (isRemainingChart) {
+                                    displayValue = Math.round(data.current); 
+                                } else {
+                                    
+                                    displayValue = isOverGoal ? Math.round(data.current - data.goal) : Math.round(data.current);
+                                }
+
+                                return (
+                                    <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                                    <tspan
+                                        x={viewBox.cx}
+                                        y={viewBox.cy}
+                                        className="fill-foreground text-4xl font-bold tracking-tighter"
+                                    >
+                                        {displayValue}
+                                    </tspan>
+                                    <tspan
+                                        x={viewBox.cx}
+                                        y={(viewBox.cy || 0) + 24}
+                                        className="fill-muted-foreground text-xs uppercase font-medium"
+                                    >
+                                        {/* Change label to "Surplus" if they overshot the consumed goal */}
+                                        {!isRemainingChart && isOverGoal ? "Surplus kcal" : data.unit}
+                                    </tspan>
+                                    </text>
+                                );
+                                }
+                            }}
                             />
                         </PolarRadiusAxis>
                     </RadialBarChart>
                 </ChartContainer>
             </CardContent>
             <CardFooter className="flex-col gap-2 text-sm">
-                <div className="flex items-center gap-2 leading-none font-medium">
-                    {data.goal > data.current ? "Out of" : "Over"}   {data.goal} {data.unit}
-
+                <div className="flex items-center gap-2 leading-none font-medium text-muted-foreground">
+                    {data.goal > data.current ? "Out of" : "Over"} {data.goal} {data.unit}
                 </div>
             </CardFooter>
         </Card>
