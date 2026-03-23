@@ -53,6 +53,7 @@ export function UserNav({ email, first_name, last_name }: UserNavProperties) {
             <button className="w-full text-left">Log out</button>
           </Form>
         </DropdownMenuItem>
+        
       </DropdownMenuContent>
     </DropdownMenu>
   );

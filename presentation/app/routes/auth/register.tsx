@@ -7,7 +7,7 @@ import RegisterForm from "../../../components/register-form";
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   if (session.has("access")) {
-    return redirect("/");
+    return redirect("/home");
   }
 
   return data(
@@ -70,7 +70,7 @@ export async function action({ request }: Route.ActionArgs) {
   session.set("access", res.access);
   session.set("refresh", res.refresh);
 
-  return redirect("/", {
+  return redirect("/home", {
     headers: { "Set-Cookie": await commitSession(session) },
   });
 }
