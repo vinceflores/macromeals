@@ -10,6 +10,7 @@ class Recipe(models.Model):
     description = models.TextField(blank=True, default="")
     servings = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
+    recipe_image=models.TextField(blank=True, default="vv")
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name="recipe_ingredients")

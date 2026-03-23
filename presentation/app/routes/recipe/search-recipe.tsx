@@ -55,6 +55,7 @@ type Recipe = {
   };
 };
 
+
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const url = new URL(request.url);
@@ -136,50 +137,46 @@ export default function Recipes({ loaderData }: Route.ComponentProps) {
     }
   }, [fetcher.data]);
 
-  const handleSelectRecipe = (r: Recipe) => {
-    setSelectedRecipe(r);
-    setOpen(true);
-  };
-  const handleSave = (i: Recipe) =>
-    fetcher.submit(
-      {
-        name: i.name,
-        description: i.description,
-        servings: 1,
-        ingredients: [
-          {
+    const handleSelectRecipe = (r: Recipe) => {
+        setSelectedRecipe(r)
+        setOpen(true)
+    }
+    const handleSave = (i: Recipe) => fetcher.submit(
+        {
             name: i.name,
-            quantity: 100,
-            calories_per_100g: i.macros.calories,
-            carbs_per_100g: i.macros.carbohydrate,
-            fat_per_100g: i.macros.fat,
-            protein_per_100g: i.macros.protein,
-          },
-        ],
-      } satisfies CreateRecipePayload,
-      {
-        method: "POST",
-        preventScrollReset: true,
-        encType: "application/json",
-      },
-    );
+            description: i.description,
+            servings: 1,
+            recipe_image: i.recipe_image,
+            ingredients: [
+                {
+                    name: i.name,
+                    quantity: 100,
+                    calories_per_100g: i.macros.calories,
+                    carbs_per_100g: i.macros.carbohydrate,
+                    fat_per_100g: i.macros.fat,
+                    protein_per_100g: i.macros.protein,
+                }
+            ]
+        } satisfies CreateRecipePayload,
+        {
+            method: "POST",
+            preventScrollReset: true,
+            encType: "application/json",
+        }
+    )
 
-  return loaderData.error ? (
-    <div>Error</div>
-  ) : (
-    <div className="w-full max-w-6xl m-auto py-6 flex flex-col justify-center items-center">
-      <Form
-        className="w-3/4 h-48 p-12  space-y-3"
-        method="get"
-        action="/recipes/search/external/"
-      >
-        <Label htmlFor="search_recipe"> Search For Recipe </Label>
-        <div className="flex items-center justify-center gap-2">
-          <Input name="q" id="search_recipe" placeholder="Chicken" />
-          <Input hidden defaultValue={0} name="page" type="number" />
-          <Button type="submit"> Search </Button>
-        </div>
-      </Form>
+    return loaderData.error ? (<div>
+        Error
+    </div>) : (
+        <div className="w-full max-w-6xl m-auto py-6 flex flex-col justify-center items-center">
+            <Form className="w-3/4 h-48 p-12  space-y-3" method="get" action="/recipes/search/external/">
+                <Label htmlFor="search_recipe"> Search For Recipe </Label>
+                <div className="flex items-center justify-center gap-2">
+                    <Input name="q" id="search_recipe" placeholder="Chicken" />
+                    <Input hidden defaultValue={0} name="page" type="number" />
+                    <Button type="submit"> Search  </Button>
+                </div>
+            </Form>
 
       <div className="flex p-2 items-center justify-between w-full">
         <h2 className="font-light">
