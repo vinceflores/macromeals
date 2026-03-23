@@ -41,7 +41,6 @@ type Recipe = {
 };
 
 
-
 export async function loader({ request }: Route.LoaderArgs) {
     const session = await getSession(request.headers.get("Cookie"));
     const url = new URL(request.url);
@@ -134,6 +133,7 @@ export default function Recipes({
             name: i.name,
             description: i.description,
             servings: 1,
+            recipe_image: i.recipe_image,
             ingredients: [
                 {
                     name: i.name,
@@ -141,7 +141,7 @@ export default function Recipes({
                     calories_per_100g: i.macros.calories,
                     carbs_per_100g: i.macros.carbohydrate,
                     fat_per_100g: i.macros.fat,
-                    protein_per_100g: i.macros.protein
+                    protein_per_100g: i.macros.protein,
                 }
             ]
         } satisfies CreateRecipePayload,

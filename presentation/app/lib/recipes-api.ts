@@ -52,6 +52,7 @@ export type RecipeDetail = {
   servings: number
   created_at: string
   ingredients: RecipeIngredient[]
+  recipe_image?: string
   macros: Macros
 }
 
@@ -83,6 +84,7 @@ export type CreateRecipePayload = {
   description?: string
   servings: number
   ingredients: IngredientInput[]
+  recipe_image?: string
 }
 
 type ApiError = {

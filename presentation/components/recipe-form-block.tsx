@@ -20,6 +20,7 @@ type RecipeFormBlockProps = {
   name: string
   description: string
   servings: string
+  recipe_image: string
   submitLabel: string
   isSubmitting: boolean
   servingsDisabled?: boolean
@@ -30,6 +31,7 @@ type RecipeFormBlockProps = {
   onNameChange: (value: string) => void
   onDescriptionChange: (value: string) => void
   onServingsChange: (value: string) => void
+  onRecipeImageChange: (value: string) => void
   onSetRowValue: (rowId: number, key: "name" | "quantity" | "unit", value: string) => void
   onIngredientNameChange: (rowId: number, value: string) => void
   onSelectIngredientSuggestion: (rowId: number, food: FoodSearchResult) => void
@@ -41,6 +43,7 @@ export default function RecipeFormBlock({
   name,
   description,
   servings,
+  recipe_image,
   submitLabel,
   isSubmitting,
   servingsDisabled = false,
@@ -51,6 +54,7 @@ export default function RecipeFormBlock({
   onNameChange,
   onDescriptionChange,
   onServingsChange,
+  onRecipeImageChange,
   onSetRowValue,
   onIngredientNameChange,
   onSelectIngredientSuggestion,
@@ -108,7 +112,21 @@ export default function RecipeFormBlock({
           className="mt-1 w-32 rounded border px-3 py-2"
         />
       </div>
-
+      <div className="w-full">
+        <label htmlFor="recipe_image" className="block text-sm font-medium">
+          Image <span className="italic font-light">(Optional)</span>
+        </label>
+        <input
+          id="recipe_image"
+          name="recipe_image"
+          type="text"
+          value={recipe_image}
+          onChange={(event) => onRecipeImageChange(event.target.value)}
+          placeholder="URL (e.g. https://image.png)"
+          className="mt-1 w-full rounded border px-3 py-2"
+        />
+        {/* TODO upload drag/drop */}
+      </div>
       <div>
         <p className="block text-sm font-medium">Ingredients</p>
         <div className="mt-2 space-y-2">
