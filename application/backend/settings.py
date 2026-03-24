@@ -13,7 +13,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
-
+import os
+import dj_database_url
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -97,14 +98,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'macromeals',       
-        'USER': 'admin',           
-        'PASSWORD': 'password',  
-        'HOST': 'db',               
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default='postgres://admin:password@db:5432/macromeals',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
