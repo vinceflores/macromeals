@@ -270,22 +270,35 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function CalendarPage() {
-  const {
-    allLogs,
-    selectedDayLogs,
-    progress,
-    currentDate,
-    waterHistory,
-    error,
-  } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const selectedDate = parseDate(currentDate);
+  const {
+    allLogs = [],
+    selectedDayLogs = [],
+    progress = {
+      current: { calories: 0, protein: 0, carbohydrates: 0, fat: 0, water: 0 },
+      goal: { calories: 2000, protein: 150, carbohydrates: 250, fat: 70, water: 2000 }
+    },
+    currentDate,
+    waterHistory = [],
+    error,
+  } = loaderData || {};
+
+  const currentDateStr = currentDate || getLocalToday();
+  let selectedDate = parseDate(currentDateStr);
+
+  if (isNaN(selectedDate.getTime())) {
+    selectedDate = parseDate(getLocalToday());
+  }
+
   const view = (searchParams.get("view") as ViewMode) || "month";
-  const logsByDate = groupLogsByDate(allLogs);
+  const logsByDate = groupLogsByDate(allLogs || []);
 
   const waterByDate = (waterHistory ?? []).reduce((acc: any, log: any) => {
-    acc[log.date_logged] = log.water;
+    if (log && log.date_logged) {
+      acc[log.date_logged] = log.water || 0;
+    }
     return acc;
   }, {});
 
