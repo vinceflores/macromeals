@@ -1,45 +1,45 @@
-    """
-    URL configuration for backend project.
+"""
+URL configuration for backend project.
 
-    The `urlpatterns` list routes URLs to views. For more information please see:
-        https://docs.djangoproject.com/en/6.0/topics/http/urls/
-    Examples:
-    Function views
-        1. Add an import:  from my_app import views
-        2. Add a URL to urlpatterns:  path('', views.home, name='home')
-    Class-based views
-        1. Add an import:  from other_app.views import Home
-        2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-    Including another URLconf
-        1. Import the include() function: from django.urls import include, path
-        2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-    """
-    from app.usda_views import UsdaSearchView, UsdaFoodDetailView
-    from django.urls import path, include
-    from rest_framework_simplejwt.views import (
-        TokenObtainPairView,
-        TokenRefreshView,
-    )
-    # from . import views
-    from django.contrib import admin
-    from recipes.views import RecipeListCreateView, RecipeDetailView, FoodSearchView
-    from recipes.external_api.views import RecipeAPISearchView
-    from analytics.views import CurrentDayProgressView
-    urlpatterns = [
-        path("api/usda/search/", UsdaSearchView.as_view()),
-        path("api/usda/food/<int:fdc_id>/", UsdaFoodDetailView.as_view()),
-        path("recipe/", RecipeListCreateView.as_view()),
-        path("recipe/<int:recipe_id>/", RecipeDetailView.as_view()),
-        path("food/search/", FoodSearchView.as_view()),
-        path("admin/", admin.site.urls),
-        path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/6.0/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from app.usda_views import UsdaSearchView, UsdaFoodDetailView
+from django.urls import path, include
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+# from . import views 
+from django.contrib import admin
+from recipes.views import RecipeListCreateView, RecipeDetailView, FoodSearchView
+from recipes.external_api.views import RecipeAPISearchView
+from analytics.views import CurrentDayProgressView
+urlpatterns = [
+    path("api/usda/search/", UsdaSearchView.as_view()),
+    path("api/usda/food/<int:fdc_id>/", UsdaFoodDetailView.as_view()),
+    path("recipe/", RecipeListCreateView.as_view()),
+    path("recipe/<int:recipe_id>/", RecipeDetailView.as_view()),
+    path("food/search/", FoodSearchView.as_view()),
+    path("admin/", admin.site.urls),
+    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 
-        path("api/", include("app.urls")),
-        path("api/auth/", include("auths.urls")),
-        path("api/accounts/", include("accounts.urls")),
-        path("api/analytics/", include("analytics.urls")),
-        path("api/logging/", include("meal_logs.urls")),
-        #test
+    path("api/", include("app.urls")),
+    path("api/auth/", include("auths.urls")),
+    path("api/accounts/", include("accounts.urls")),
+    path("api/analytics/", include("analytics.urls")),
+    path("api/logging/", include("meal_logs.urls")),
+    #test
 
-        path("api/external/recipe/search", RecipeAPISearchView.as_view()), 
-    ]
+    path("api/external/recipe/search", RecipeAPISearchView.as_view()), 
+]
