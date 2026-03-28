@@ -243,6 +243,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       error: undefined as string | undefined,
     });
   } catch (error) {
+    console.error("CALENDAR_LOADER_CRASH:", error);
     return data({
       allLogs: [] as MealLog[],
       selectedDayLogs: [] as MealLog[],
