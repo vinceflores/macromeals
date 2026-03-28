@@ -80,7 +80,7 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
                           {ingredient && (
                             <p className="text-xs text-muted-foreground">
                               {ingredient.quantity}
-                              {ingredient.unit.toLowerCase()}{" "}
+                              {ingredient.unit?.toLowerCase()}{" "}
                             </p>
                           )}
                         </div>
