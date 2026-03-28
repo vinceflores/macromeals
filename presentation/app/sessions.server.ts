@@ -49,6 +49,7 @@ const { getSession, commitSession, destroySession } = createSessionStorage<Sessi
         console.error(`DEBUG: Session ID ${id} NOT FOUND in Redis.`);
         return null;
       }
+      console.log(`DEBUG: Session ${id} successfully retrieved from Redis.`);
       return JSON.parse(raw) as SessionData;
     },
 
