@@ -1,5 +1,5 @@
 import { redirect, type Session } from "react-router";
-import { commitSession, destroySession, getSession } from "~/sessions.server";
+import { commitSession, destroySession } from "~/sessions.server";
 
 export async function Fetch(request: Request, session: Session) {
   const accessToken = await session.get("access");
@@ -18,16 +18,9 @@ export async function Fetch(request: Request, session: Session) {
     body
   });
   
-  if (response.status === 401) {
-  const cookieHeader = request.headers.get("Cookie");
-  const session = await getSession(cookieHeader);
-
-  throw redirect("/auth/login", {
-    headers: {
-      "Set-Cookie": await destroySession(session),
-    },
-  });
-}
+  if (response.status !== 401) {
+    return response;
+  }
 
   const refreshResponse = await fetch(`${server_url}/api/auth/token/refresh/`, {
     method: "POST",
