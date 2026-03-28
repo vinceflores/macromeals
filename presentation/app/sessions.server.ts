@@ -43,8 +43,12 @@ const { getSession, commitSession, destroySession } = createSessionStorage<Sessi
     },
 
     async readData(id) {
+      console.log(`DEBUG: Attempting to read session ID: ${id}`);
       const raw = await redis.get(sessionKey(id));
-      if (!raw) return null;
+      if (!raw) {
+        console.error(`DEBUG: Session ID ${id} NOT FOUND in Redis.`);
+        return null;
+      }
       return JSON.parse(raw) as SessionData;
     },
 
