@@ -93,9 +93,9 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
                             Edit
                           </Link>
                           <Form
-                            method="post"
-                            action="/analytics/logging"
-                            className="inline-flex"
+                              method="post"
+                              action={`/analytics/logging?date=${currentDate}`} 
+                              className="inline-flex"
                           >
                             <input
                               type="hidden"
