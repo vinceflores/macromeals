@@ -13,7 +13,9 @@ function getApiBaseUrl() {
   )
 }
 
-const API_BASE_URL = getApiBaseUrl().replace(/\/+$/, "")
+const API_BASE_URL = (getApiBaseUrl() || "").replace(/\/+$/, "");
+console.log("VITE THINKS THE BACKEND IS AT:", API_BASE_URL); // Add this!
+
 
 type Macros = {
   total: {
@@ -135,7 +137,7 @@ export function createRecipe(payload: CreateRecipePayload) {
 
 export function searchFood(query: string) {
   const q = encodeURIComponent(query.trim())
-  return request<FoodSearchResponse>(`/food/search/?q=${q}`)
+  return request<FoodSearchResponse>(`/food/search/?q=${q}`);
 }
 
 // export async function searchFoodExternal(q: string, page: number, session:Session) {

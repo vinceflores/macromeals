@@ -36,6 +36,7 @@ type MealLogIngredient = {
 type MealLog = {
   id: number;
   meal_name: string;
+  recipe_name: string;
   description: string;
   ingredients: MealLogIngredient[];
   calories: number;
@@ -196,6 +197,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   let payload: {
     meal_name: string;
+    recipe_name: string;
     description: string;
     date_logged: string;
     servings: number;
@@ -244,6 +246,7 @@ export async function action({ request }: Route.ActionArgs) {
         servings?: number;
         name: string;
         description?: string;
+        recipe_name?: string;
         ingredients?: Array<{
           ingredient_name: string;
           quantity: number;
@@ -263,6 +266,7 @@ export async function action({ request }: Route.ActionArgs) {
         meal_name: mealType,
         description: recipe.description ?? "",
         date_logged: date,
+        recipe_name: recipe.name,
         servings: servingsToLog,
         ingredients: (recipe.ingredients ?? []).map((ing) => ({
           name: ing.ingredient_name,
@@ -310,6 +314,7 @@ export async function action({ request }: Route.ActionArgs) {
       meal_name: mealType,
       description: "",
       date_logged: date,
+      recipe_name: itemName,
       servings: 1,
       ingredients: [
         {
