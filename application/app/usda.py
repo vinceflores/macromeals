@@ -6,6 +6,10 @@ FDC_BASE = "https://api.nal.usda.gov/fdc/v1"
 
 def _api_key() -> str:
     key = os.getenv("USDA_API_KEY", "").strip()
+    if not key:
+        print("DEBUG ERROR: USDA_API_KEY is missing from environment!")
+    else:
+        print(f"DEBUG: USDA Key found starting with: {key[:4]}")
     return key
 
 

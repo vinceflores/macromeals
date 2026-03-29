@@ -67,11 +67,6 @@ const { getSession, commitSession, destroySession } = createSessionStorage<Sessi
 
 export { getSession, commitSession, destroySession };
 
-
-// For Persisting Dark mode
-
-const isProduction = process.env.NODE_ENV === "production"
-
 const sessionStorage = createCookieSessionStorage({
   cookie: {
     name: "theme",
