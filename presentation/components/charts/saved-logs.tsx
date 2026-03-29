@@ -10,6 +10,7 @@ interface MealLogIngredient {
 interface MealLog {
   id: number;
   meal_name: string;
+  recipe_name: string,
   description: string;
   calories: number;
   protein: number;
@@ -58,7 +59,7 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
                 typeLogs.map((log) => {
                   const ingredient = log.ingredients?.[0];
                   const rawName =
-                   log.description || ingredient?.name || "Unnamed Meal";
+                   log.recipe_name || "Unnamed Meal";
                   const displayName = rawName
                     .toLowerCase()
                     .split(" ")
