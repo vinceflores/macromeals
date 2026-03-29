@@ -58,7 +58,7 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
                 typeLogs.map((log) => {
                   const ingredient = log.ingredients?.[0];
                   const rawName =
-                    log.meal_name || ingredient?.name || "Unnamed Meal";
+                   ingredient?.name || log.description || "Unnamed Meal";
                   const displayName = rawName
                     .toLowerCase()
                     .split(" ")
