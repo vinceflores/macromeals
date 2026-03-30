@@ -20,6 +20,7 @@ export default [
     route("analytics/logging/water",      "routes/analytics/water_log.tsx"),
   ]),
 
+  index("routes/landing.tsx"),
   route("onboarding",                     "routes/onboarding.tsx"),
   route("auth/login",                     "routes/auth/login.tsx"),
   route("auth/reset-password",            "routes/auth/reset-password.tsx"),
@@ -28,4 +29,5 @@ export default [
   route("auth/reset-password/resend",     "routes/auth/reset-password.resend.tsx"),
   route("auth/register",                  "routes/auth/register.tsx"),
   route("auth/logout",                    "routes/auth/logout.tsx"),
+  route("action/set-theme",               "routes/action.set-theme.ts"),
 ] satisfies RouteConfig;
