@@ -58,7 +58,3 @@ coverage.xml
 *.swo
 .DS_Store
 Thumbs.db
-
-# Migrations (optional — many teams commit these)
-*/migrations/*.py
-!*/migrations/__init__.py
