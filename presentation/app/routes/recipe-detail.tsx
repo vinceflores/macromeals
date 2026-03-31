@@ -201,7 +201,13 @@ export default function RecipeDetailRoute() {
         </>
       ) : (
         <>
+            {
+              recipe.recipe_image &&
+              <img src={recipe.recipe_image} alt={recipe.name} className="w-full h-64 my-2 aspect-video object-cover" />
+            }
           <div className="mt-4 flex items-start justify-between gap-4">
+            
+
             <div className="space-y-1">
               <h1 className="text-3xl font-semibold">{recipe.name}</h1>
               {recipe.source_owner_name && (
