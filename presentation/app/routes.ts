@@ -12,6 +12,7 @@ export default [
     route("recipes",                      "routes/recipes.tsx"),
     route("recipes/:id",                  "routes/recipe-detail.tsx"),
     route("friends",                      "routes/friends.tsx"),
+    route("friends/:id/recipes",          "routes/friends-recipes.tsx"),
     route("edit/:kind/:id",               "routes/edit-item.tsx"),
     route("recipes/search/external/",     "routes/recipe/search-recipe.tsx"),
     route("calendar",                     "routes/calendar.tsx"),
