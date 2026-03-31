@@ -258,7 +258,9 @@ export default function RecipeDetailRoute() {
           <p className="mt-2 text-sm text-zinc-600">
             Servings: {recipe.servings}
           </p>
-          {recipe.description && <p className="mt-3">{recipe.description}</p>}
+          {recipe.description && (
+            <p className="mt-3 whitespace-pre-line">{recipe.description}</p>
+          )}
 
           <section className="mt-6 rounded border p-4">
             <h2 className="text-xl font-medium">Ingredients</h2>
