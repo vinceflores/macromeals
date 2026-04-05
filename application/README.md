@@ -27,3 +27,10 @@ Type `project`
 ### `/accounts`
 ### `/auths`
 ### `/recipes`
+
+## Testing
+```
+docker exec -it macromeals_backend python /app/application/manage.py test accounts recipes meal_logs analytics --verbosity=2
+```
+
+
