@@ -55,6 +55,23 @@ type Recipe = {
   };
 };
 
+function buildSavedRecipeDescription(recipe: Recipe) {
+  const baseDescription = recipe.description?.trim() ?? "";
+  const ingredientLines =
+    recipe.recipe_ingredients.ingredient
+      ?.map((ingredient) => ingredient.trim())
+      .filter(Boolean) ?? [];
+
+  if (!ingredientLines.length) {
+    return baseDescription;
+  }
+
+  const ingredientsBlock = `Saved Ingredients:\n${ingredientLines.join("\n")}`;
+  return baseDescription
+    ? `${baseDescription}\n\n${ingredientsBlock}`
+    : ingredientsBlock;
+}
+
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -144,7 +161,7 @@ export default function Recipes({ loaderData }: Route.ComponentProps) {
     const handleSave = (i: Recipe) => fetcher.submit(
         {
             name: i.name,
-            description: i.description,
+            description: buildSavedRecipeDescription(i),
             servings: 1,
             recipe_image: i.recipe_image,
             ingredients: [

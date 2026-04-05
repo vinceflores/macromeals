@@ -15,6 +15,7 @@ class MealLog(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="meal_logs")
     meal_name = models.CharField(max_length=20, choices = MEAL_TYPES)
+    recipe_name = models.CharField(max_length=255, blank =True, default="")
     date_logged = models.DateField(default=timezone.now)
     description = models.TextField(blank=True, default="")
     ingredients = models.JSONField(default=list, blank=True)

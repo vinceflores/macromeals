@@ -148,7 +148,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
               value={`${loaderData.age} yrs`}
             />
             <Stat
-              label="Biological Sex"
+              label="Gender"
               value={SEX_LABELS[loaderData.biological_sex] ?? loaderData.biological_sex ?? "—"}
             />
           </div>

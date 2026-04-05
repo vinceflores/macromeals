@@ -10,6 +10,7 @@ interface MealLogIngredient {
 interface MealLog {
   id: number;
   meal_name: string;
+  recipe_name: string,
   description: string;
   calories: number;
   protein: number;
@@ -38,7 +39,9 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {mealTypes.map((type) => {
-          const typeLogs = logs.filter((l) => {
+          const safeLogs = Array.isArray(logs) ? logs : [];
+          
+          const typeLogs = safeLogs.filter((l) => {
             if (l.meal_name?.toUpperCase() !== type) return false;
             const logDateValue = l.date_logged || l.created_at;
             return logDateValue?.split("T")[0] === currentDate;
@@ -58,8 +61,7 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
                 typeLogs.map((log) => {
                   const ingredient = log.ingredients?.[0];
                   const rawName =
-                    ingredient?.name || log.description || "Unnamed Meal";
-
+                   log.recipe_name || "Unnamed Meal";
                   const displayName = rawName
                     .toLowerCase()
                     .split(" ")
@@ -80,7 +82,7 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
                           {ingredient && (
                             <p className="text-xs text-muted-foreground">
                               {ingredient.quantity}
-                              {ingredient.unit.toLowerCase()}{" "}
+                              {ingredient.unit?.toLowerCase()}{" "}
                             </p>
                           )}
                         </div>
@@ -93,9 +95,9 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
                             Edit
                           </Link>
                           <Form
-                            method="post"
-                            action="/analytics/logging"
-                            className="inline-flex"
+                              method="post"
+                              action={`/analytics/logging?date=${currentDate}`} 
+                              className="inline-flex"
                           >
                             <input
                               type="hidden"

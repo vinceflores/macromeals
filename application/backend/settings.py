@@ -13,8 +13,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
-
+import os
+import dj_database_url
 load_dotenv()
+import re
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,7 +31,7 @@ SECRET_KEY = "django-insecure-h(zkc+7_ob$@k8h0!74pcr(kcm)d_$jjsru%mmw93s3b_4mh24
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'backend']
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0,backend").split(",")
 # ALLOWED_HOSTS=[]
 
 
@@ -85,26 +87,36 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    # "*"
-]
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    "CORS_ALLOWED_ORIGINS", 
+    "http://localhost:5173,http://127.0.0.1:5173"
+).split(",")
+
+
+CORS_ALLOW_ALL_ORIGINS = os.environ.get("CORS_ALLOW_ALL_ORIGINS", "False") == "True"
+
+
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    "CSRF_TRUSTED_ORIGINS", 
+    "http://localhost:3000,http://localhost:8000,http://127.0.0.1:8000"
+).split(",")
+
+CORS_ALLOWED_ORIGIN_REGEXES = []
+cors_regex = os.environ.get("CORS_ALLOWED_REGEX")
+if cors_regex:
+    CORS_ALLOWED_ORIGIN_REGEXES.append(re.compile(cors_regex))
+
 # CORS_ALLOWED_ORIGINS=["*"] # for production
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'macromeals',       
-        'USER': 'admin',           
-        'PASSWORD': 'password',  
-        'HOST': 'db',               
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default='postgres://admin:password@db:5432/macromeals',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 

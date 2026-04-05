@@ -6,10 +6,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   ssr: {
-    external: ["ioredis"],  // force it to stay server-side only
+    external: ["ioredis"], // force it to stay server-side only
   },
   optimizeDeps: {
-    exclude: ["ioredis"],  // <-- this is what stops the client bundle error
+    exclude: ["ioredis"], // <-- this is what stops the client bundle error
   },
   server: {
     watch: {
@@ -18,5 +18,14 @@ export default defineConfig({
 
     port: 5173,
     host: true,
+  },
+  build: {
+    sourcemap: false,
+    rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.code === "SOURCEMAP_ERROR") return;
+        warn(warning);
+      },
+    },
   },
 });

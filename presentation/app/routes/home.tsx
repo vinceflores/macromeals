@@ -63,22 +63,21 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     [me?.first_name, me?.last_name].filter(Boolean).join(" ") || "User";
   const showOnboardingBanner = !me?.onboarding_complete;
 
-  const consumed = macros.current.calories;
-  const goal = macros.goal.calories;
+ 
+  const consumed = macros?.current?.calories || 0;
+  const goal = macros?.goal?.calories || 2000;
 
-  const remainingValue = Math.max(
-    0,
-    macros.goal.calories - macros.current.calories,
-  );
+  const remainingValue = Math.max(0, goal - consumed);
+
   const remainingData = [
-    {
-      calories: remainingValue,
-      current: remainingValue,
-      goal: macros.goal.calories,
-      unit: "kcal",
-      fill: "var(--chart-1)",
-    },
-  ];
+  {
+    calories: remainingValue,
+    current: remainingValue,
+    goal: goal,
+    unit: "kcal",
+    fill: "var(--chart-1)",
+  },
+];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -125,8 +124,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           />
           <WaterStat
             title="Water"
-            current={macros.current.water}
-            goal={macros.goal.water}
+            current={macros?.current?.water || 0}
+            goal={macros?.goal?.water || 2000}
           />
         </div>
 

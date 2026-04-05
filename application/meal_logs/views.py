@@ -42,9 +42,15 @@ class MealLogListCreateView(APIView):
         validated = serializer.validated_data
         ingredients = validated.get("ingredients", [])
         computed = _compute_macros_from_ingredients(ingredients)
+        recipe_name = validated.get("recipe_name","").strip()
+
+        if not recipe_name and ingredients:
+            recipe_name = ingredients[0].get("name", "Unnamed Meal")
+
         meal_log = MealLog.objects.create(
             user=request.user,
             meal_name=validated["meal_name"],
+            recipe_name=recipe_name,
             description=validated.get("description", ""),
             date_logged=validated.get("date_logged"),
             ingredients=ingredients,

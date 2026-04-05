@@ -33,10 +33,7 @@ export async function loader({
 }
 
 async function validateCredentials(email: string, password: string) {
-
     try {
-
-        // const res = await fetch("http://localhost:8000/api/token/", {
         const res = await fetch(`${process.env.SERVER_URL}/api/auth/token/`, {
             method: "POST",
             headers: {
@@ -79,7 +76,6 @@ export async function action({
         });
     }
 
-    // session.set("userId", res.userId);
     session.set("access", res.access);
     session.set("refresh", res.refresh);
     return redirect("/home", {

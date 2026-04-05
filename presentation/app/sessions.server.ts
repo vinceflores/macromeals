@@ -44,7 +44,11 @@ const { getSession, commitSession, destroySession } = createSessionStorage<Sessi
 
     async readData(id) {
       const raw = await redis.get(sessionKey(id));
-      if (!raw) return null;
+      if (!raw) {
+        console.error(`DEBUG: Session ID ${id} NOT FOUND in Redis.`);
+        return null;
+      }
+      console.log(`DEBUG: Session ${id} successfully retrieved from Redis.`);
       return JSON.parse(raw) as SessionData;
     },
 
@@ -62,22 +66,14 @@ const { getSession, commitSession, destroySession } = createSessionStorage<Sessi
 
 export { getSession, commitSession, destroySession };
 
-
-// For Persisting Dark mode
-
-const isProduction = process.env.NODE_ENV === "production"
-
 const sessionStorage = createCookieSessionStorage({
   cookie: {
     name: "theme",
     path: "/",
     httpOnly: true,
-    sameSite: "lax",
-    secrets: ["s3cr3t"],
-    // Set domain and secure only if in production
-    ...(isProduction
-      ? { domain:process.env.DOMAIN, secure: true }
-      : {}),
+    sameSite: "none",
+    secrets: [process.env.SESSION_SECRET || "s3cr3t"],
+    secure: process.env.NODE_ENV === "production",
   },
 })
 

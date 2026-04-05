@@ -1,20 +1,21 @@
 
 function getApiBaseUrl() {
-  // Important: route loaders/actions run on the server, so API host resolution
-  // must work in both SSR (Node) and browser contexts.
   if (import.meta.env.SSR) {
     return (
       process.env.API_BASE_URL ??
       process.env.SERVER_URL ??
-      import.meta.env.VITE_API_BASE_URL ??
-      "http://backend:8000"
+      "http://backend:8000" 
     )
   }
 
-  return import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000"
+  return (
+    import.meta.env.VITE_API_BASE_URL
+  )
 }
 
-const API_BASE_URL = getApiBaseUrl().replace(/\/+$/, "")
+const API_BASE_URL = (getApiBaseUrl() || "").replace(/\/+$/, "");
+console.log("VITE THINKS THE BACKEND IS AT:", API_BASE_URL); // Add this!
+
 
 type Macros = {
   total: {
@@ -136,7 +137,7 @@ export function createRecipe(payload: CreateRecipePayload) {
 
 export function searchFood(query: string) {
   const q = encodeURIComponent(query.trim())
-  return request<FoodSearchResponse>(`/food/search/?q=${q}`)
+  return request<FoodSearchResponse>(`/food/search/?q=${q}`);
 }
 
 // export async function searchFoodExternal(q: string, page: number, session:Session) {

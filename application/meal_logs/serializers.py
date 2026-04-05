@@ -19,6 +19,7 @@ class MealLogSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "meal_name",
+            "recipe_name",
             "description",
             "ingredients",
             "servings",
@@ -33,6 +34,7 @@ class MealLogSerializer(serializers.ModelSerializer):
 
 class MealLogCreateSerializer(serializers.Serializer):
     meal_name = serializers.CharField(max_length=255)
+    recipe_name = serializers.CharField(max_length=255, allow_blank=True, default="")
     description = serializers.CharField(required=False, allow_blank=True, default="")
     servings = serializers.FloatField(required=False, default=1, min_value=0.1)
     ingredients = MealLogIngredientSerializer(many=True, required=False, default=list)
