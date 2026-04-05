@@ -16,6 +16,7 @@ class RecipeCreateSerializer(serializers.Serializer):
     name        = serializers.CharField(max_length=255)
     description = serializers.CharField(required=False, allow_blank=True, default='')
     servings    = serializers.IntegerField(min_value=1)
+    recipe_image= serializers.CharField(required=False, allow_blank=True, default="")
     ingredients = IngredientInputSerializer(many=True)
 
 
@@ -23,6 +24,7 @@ class RecipeUpdateSerializer(serializers.Serializer):
     name        = serializers.CharField(max_length=255)
     description = serializers.CharField(required=False, allow_blank=True, default='')
     ingredients = IngredientInputSerializer(many=True)
+    recipe_image = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -59,7 +61,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Recipe
         fields = [
-            'id', 'name', 'description', 'servings', 'created_at',
+            'id', 'name', 'description', 'servings', 'recipe_image', 'created_at',
             'visibility', 'owner_name',
             'source_recipe_id', 'source_recipe_name', 'source_owner_name',
             'ingredients', 'macros',
@@ -81,7 +83,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Recipe
         fields = [
-            'id', 'name', 'servings', 'created_at',
+            'id', 'name', 'servings', 'created_at', 'recipe_image',
             'visibility', 'source_owner_name', 'source_recipe_name',
             'macros',
         ]

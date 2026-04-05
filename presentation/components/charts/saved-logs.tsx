@@ -39,7 +39,9 @@ export function SavedLogs({ logs = [], currentDate, error }: SavedLogsProps) {
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {mealTypes.map((type) => {
-          const typeLogs = logs.filter((l) => {
+          const safeLogs = Array.isArray(logs) ? logs : [];
+          
+          const typeLogs = safeLogs.filter((l) => {
             if (l.meal_name?.toUpperCase() !== type) return false;
             const logDateValue = l.date_logged || l.created_at;
             return logDateValue?.split("T")[0] === currentDate;
